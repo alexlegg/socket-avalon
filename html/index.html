@@ -1,0 +1,57 @@
+<html>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <head>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="jquery-2.0.3.min.js"></script>
+        <script src="client.js"></script>
+        <style type="text/css">
+            #lobby {
+                display: none;
+            }
+            #pregame {
+                display: none;
+            }
+            #game {
+                display: none;
+            }
+            #hiddeninfo {
+                display: none;
+            }
+
+            .evil {
+                color: red;
+            }
+
+            .good {
+                color: blue;
+            }
+        </style>
+        <title>Avalon</title>
+    </head>
+
+    <div id="entername">
+        Please enter a name: <input type="text" id="playername" value="" />
+        <input type="button" id="btn_playername" value="Go" />
+    </div>
+
+    <div id="lobby">
+        <table id="gamelist">
+        </table>
+        <input type="button" id="new_game" value="New Game" />
+    </div>
+
+    <div id="pregame">
+        <table id="gameinfo">
+        </table>
+        <input type="button" id="btn_ready" value="I am Ready" />
+    </div>
+
+    <div id="game">
+        <div id="hiddeninfo">
+            <span id="myrole"></span>
+
+        </div>
+        <input type="button" id="btn_showinfo" value="Show hidden info" />
+    </div>
+
+</html>
