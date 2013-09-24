@@ -1,3 +1,6 @@
+.PHONY: all
+all: server client
+
 %.js: %.coffee
 	coffee -c $<
 
@@ -6,21 +9,21 @@ CLIENTOBJ = ${CLIENTSRC:.coffee=.js}
 CLIENTOUT = js/avalon.js
 
 $(CLIENTOUT): $(CLIENTOBJ)
-	cat $> $@
+	cat $^ > $@
 
 .PHONY: client
 client: $(CLIENTOUT)
 
 SERVERSRC = server/avalon.coffee
 SERVEROBJ = ${SERVERSRC:.coffee=.js}
-SERVEROUT = avalaon.js
+SERVEROUT = avalon.js
 
-$(SERVEROUT): $(CLIENTOBJ)
-	cat $> $@
+$(SERVEROUT): $(SERVEROBJ)
+	cat $^ > $@
 
 .PHONY: server
 server: $(SERVEROUT)
 
 clean:
-	rm -rf *.js js/*.js client/*.js server/*.js
+	rm -rf ${CLIENTOBJ} ${SERVEROBJ} ${CLIENTOUT} ${SERVEROUT}
 
