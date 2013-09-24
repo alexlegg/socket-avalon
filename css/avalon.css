@@ -1,0 +1,29 @@
+body {
+    background-color: #eee;
+}
+a {
+    cursor: pointer;
+}
+.container {
+    max-width: 330px;
+}
+#lobby {
+    display: none;
+}
+#pregame {
+    display: none;
+}
+#game {
+    display: none;
+}
+#hiddeninfo {
+    display: none;
+}
+
+.evil {
+    color: red;
+}
+
+.good {
+    color: blue;
+}

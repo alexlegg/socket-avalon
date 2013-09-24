@@ -8,7 +8,6 @@ html_dir = "./html"
 script_dir = "./js"
 style_dir = "./css"
 
-
 #
 # Web server
 #
@@ -22,7 +21,7 @@ server = http.createServer (req, res) ->
                 res.writeHead 200, { 'Content-Type': 'text/html;charset=utf-8' }
                 res.write data, 'utf8'
                 res.end()
-        when "/bootstrap.min.css", "/bootstrap-theme.min.css"
+        when "/bootstrap.min.css", "/bootstrap-theme.min.css", "/avalon.css"
             fs.readFile style_dir + path, (err, data) ->
                 return send404 res if err
                 res.writeHead 200, { 'Content-Type': 'text/css' }

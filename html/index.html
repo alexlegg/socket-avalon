@@ -9,37 +9,7 @@
         <link rel="stylesheet" href="bootstrap.min.css">
         <link rel="stylesheet" href="bootstrap-theme.min.css">
         <script src="bootstrap.min.js"></script>
-        <style type="text/css">
-            body {
-                background-color: #eee;
-            }
-            a {
-                cursor: pointer;
-            }
-            .container {
-                max-width: 330px;
-            }
-            #lobby {
-                display: none;
-            }
-            #pregame {
-                display: none;
-            }
-            #game {
-                display: none;
-            }
-            #hiddeninfo {
-                display: none;
-            }
-
-            .evil {
-                color: red;
-            }
-
-            .good {
-                color: blue;
-            }
-        </style>
+        <link rel="stylesheet" href="avalon.css">
         <title>Avalon</title>
     </head>
 
@@ -62,11 +32,10 @@
         </div>
 
         <div id="game">
-            <div id="hiddeninfo">
-                <span id="myrole"></span>
-
-            </div>
-            <input type="button" id="btn_showinfo" value="Show hidden info" />
+            <ul class="list-group" id="hiddeninfo">
+                <li class="list-group-item" id="myrole"></li>
+            </ul>
+            <button class="btn btn-lg btn-warning btn-block" id="btn_showinfo">Show Hidden Info</button>
         </div>
     </div>
 </html>

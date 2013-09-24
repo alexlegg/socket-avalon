@@ -1,6 +1,5 @@
 socket = io.connect('http://' + document.domain)
 socket.on 'connect', (data) ->
-    alert "connected"
     console.log("connected")
 
 socket.on 'gamelist', (games) ->
@@ -8,19 +7,17 @@ socket.on 'gamelist', (games) ->
     $("#lobby").show()
     $("#gamelist").empty()
     for g in games
-        join_btn = $('<a>')
-            .attr(class : "list-group-item")
-            .text(g.name)
-            .append($('<span>').attr(class: "badge").text(g.num_players))
-            .on 'click touchstart', () ->
-                socket.emit 'joingame', { game_id : g.id }
-                $('#lobby').hide()
-                $('#pregame').show()
+        do (g) ->
+            join_btn = $('<a>')
+                .addClass("list-group-item")
+                .text(g.name)
+                .append($('<span>').addClass("badge").text(g.num_players))
+                .click () ->
+                    socket.emit 'joingame', { game_id : g.id }
 
-        $("#gamelist").append(join_btn)
+            $("#gamelist").append(join_btn)
 
 socket.on 'gameinfo', (game) ->
-    console.log "game info"
     $("#lobby").hide()
     if !game.started
         $("#pregame").show()
@@ -28,9 +25,9 @@ socket.on 'gameinfo', (game) ->
         for p in game.players
             ready = if p.ready then '\u2714' else '\u2715'
             li = $('<li>')
-                .attr(class : "list-group-item")
+                .addClass("list-group-item")
                 .text(p.name)
-                .append($('<span>').attr(class: "badge").text(ready))
+                .append($('<span>').addClass("badge").text(ready))
             $("#gameinfo").append li
     else
         $("#pregame").hide()
@@ -44,23 +41,32 @@ socket.on 'gameinfo', (game) ->
         $("#myrole").text(me.role)
 
         for i in me.info
-            $("#hiddeninfo").append(i.otherPlayer + " is " + i.information + "<br /")
+            info = $("<span>").text(i.information)
+            if i.information == "evil" then info.addClass("evil")
+            li = $("<li>")
+                .addClass("list-group-item")
+                .text(i.otherPlayer + " is ")
+                .append(info)
+            $("#hiddeninfo").append(li)
 
 jQuery ->
     $("#form-signin").on 'submit', (e) ->
         socket.emit 'newuser', {name: $("#playername").val()}
         e.preventDefault()
 
-    $("#btn_newgame").on 'click touchstart', () ->
-        console.log "new game"
+    $("#btn_newgame").on 'click', () ->
         socket.emit 'newgame'
 
-    $("#btn_ready").on 'click touchstart', () ->
+    $("#btn_ready").on 'click', () ->
         if $("#btn_ready").text()  == "I am Ready"
             $("#btn_ready").text("I am not Ready")
         else
             $("#btn_ready").text("I am Ready")
         socket.emit 'ready'
 
-    $("#btn_showinfo").on 'click touchstart', () ->
+    $("#btn_showinfo").on 'click', () ->
+        if $("#hiddeninfo").is(":visible")
+            $("#btn_showinfo").text("Show Hidden Info")
+        else
+            $("#btn_showinfo").text("Hide Hidden Info")
         $("#hiddeninfo").toggle()

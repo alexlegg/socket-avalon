@@ -4,10 +4,12 @@
 
 send_game_list = () ->
     Game.find {}, (err, games) ->
-        data = games.map (g) -> 
-            id : g.id
-            name : g.name()
-            num_players : g.players.length
+        data = []
+        for g in games
+            if (!g.started) then data.push
+                id : g.id
+                name : g.name()
+                num_players : g.players.length
         io.sockets.in('lobby').emit('gamelist', data)
 
 send_game_info = (game) ->
