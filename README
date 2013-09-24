@@ -1,0 +1,11 @@
+Socket Avalon
+=============
+
+This is an app to do the setup phase of [The Resistance:
+Avalon](http://www.indieboardsandcards.com/RESAvalon.php). It uses
+[socket.io](http://socket.io) with a [MongoDB](http://www.mongodb.org/)
+database, which is managed by [Mongoose](http://mongoosejs.com/). The frontend
+is Twitter's [Bootstrap](http://getbootstrap.com).
+
+It's a bit hacky...
+
