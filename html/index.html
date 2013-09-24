@@ -1,10 +1,24 @@
+<!DOCTYPE html>
 <html>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
         <script src="/socket.io/socket.io.js"></script>
-        <script src="jquery-2.0.3.min.js"></script>
-        <script src="client.js"></script>
+        <script src="jquery.min.js"></script>
+        <script src="avalon.js"></script>
+        <link rel="stylesheet" href="bootstrap.min.css">
+        <link rel="stylesheet" href="bootstrap-theme.min.css">
+        <script src="bootstrap.min.js"></script>
         <style type="text/css">
+            body {
+                background-color: #eee;
+            }
+            a {
+                cursor: pointer;
+            }
+            .container {
+                max-width: 330px;
+            }
             #lobby {
                 display: none;
             }
@@ -29,29 +43,30 @@
         <title>Avalon</title>
     </head>
 
-    <div id="entername">
-        Please enter a name: <input type="text" id="playername" value="" />
-        <input type="button" id="btn_playername" value="Go" />
-    </div>
+    <div class="container">
+        <form class="form-signin" id="form-signin">
+            <h2 class="form-signin-heading">Please enter a name</h2>
+            <input type="text" id="playername" class="form-control" placeholder="Name" autofocus>
+            <br />
+            <button id="btn_signin" class="btn btn-lg btn-primary btn-block">Go</button>
+        </form>
 
-    <div id="lobby">
-        <table id="gamelist">
-        </table>
-        <input type="button" id="new_game" value="New Game" />
-    </div>
-
-    <div id="pregame">
-        <table id="gameinfo">
-        </table>
-        <input type="button" id="btn_ready" value="I am Ready" />
-    </div>
-
-    <div id="game">
-        <div id="hiddeninfo">
-            <span id="myrole"></span>
-
+        <div id="lobby">
+            <ul class="list-group" id="gamelist"></ul>
+            <button class="btn btn-lg btn-primary btn-block" id="btn_newgame">New Game</button>
         </div>
-        <input type="button" id="btn_showinfo" value="Show hidden info" />
-    </div>
 
+        <div id="pregame">
+            <ul class="list-group" id="gameinfo"></ul>
+            <button class="btn btn-lg btn-primary btn-block" id="btn_ready">I am Ready</button>
+        </div>
+
+        <div id="game">
+            <div id="hiddeninfo">
+                <span id="myrole"></span>
+
+            </div>
+            <input type="button" id="btn_showinfo" value="Show hidden info" />
+        </div>
+    </div>
 </html>

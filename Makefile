@@ -1,4 +1,4 @@
-SERVERSRC = server/avalon.coffee
+SERVERSRC = server/server.coffee server/db.coffee server/avalon.coffee
 SERVER = avalon.js
 
 CLIENTSRC = client/client.coffee

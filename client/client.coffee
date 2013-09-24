@@ -1,29 +1,23 @@
-socket = io.connect('http://localhost')
+socket = io.connect('http://' + document.domain)
 socket.on 'connect', (data) ->
+    alert "connected"
     console.log("connected")
 
 socket.on 'gamelist', (games) ->
-    $("#entername").hide()
+    $("#form-signin").hide()
     $("#lobby").show()
     $("#gamelist").empty()
     for g in games
-        join_btn = $('<input>').attr
-            class : "btn_joingame"
-            type : "button"
-            value : "Join"
-            id : "joingame" + g.id
+        join_btn = $('<a>')
+            .attr(class : "list-group-item")
+            .text(g.name)
+            .append($('<span>').attr(class: "badge").text(g.num_players))
+            .on 'click touchstart', () ->
+                socket.emit 'joingame', { game_id : g.id }
+                $('#lobby').hide()
+                $('#pregame').show()
 
-        join_btn.click (e) ->
-            game_id = e.target.id.substr(8)
-            socket.emit 'joingame', { game_id : game_id }
-            $('#lobby').hide()
-            $('#pregame').show()
-
-        $("#gamelist").append(
-            $('<tr>').append($('<td>').text(g.name))
-                .append($('<td>').text(g.num_players + "/5"))
-                .append($('<td>').append(join_btn))
-        )
+        $("#gamelist").append(join_btn)
 
 socket.on 'gameinfo', (game) ->
     console.log "game info"
@@ -33,9 +27,11 @@ socket.on 'gameinfo', (game) ->
         $("#gameinfo").empty()
         for p in game.players
             ready = if p.ready then '\u2714' else '\u2715'
-            $("#gameinfo").append(
-                $('<tr>').append($('<td>').text(p.name))
-                    .append($('<td>').text(ready)))
+            li = $('<li>')
+                .attr(class : "list-group-item")
+                .text(p.name)
+                .append($('<span>').attr(class: "badge").text(ready))
+            $("#gameinfo").append li
     else
         $("#pregame").hide()
         $("#game").show()
@@ -51,19 +47,20 @@ socket.on 'gameinfo', (game) ->
             $("#hiddeninfo").append(i.otherPlayer + " is " + i.information + "<br /")
 
 jQuery ->
-    $("#btn_playername").on 'click', () ->
+    $("#form-signin").on 'submit', (e) ->
         socket.emit 'newuser', {name: $("#playername").val()}
+        e.preventDefault()
 
-    $("#new_game").on 'click', () ->
+    $("#btn_newgame").on 'click touchstart', () ->
         console.log "new game"
         socket.emit 'newgame'
 
-    $("#btn_ready").on 'click', () ->
-        if $("#btn_ready").attr("value") == "I am Ready"
-            $("#btn_ready").attr("value", "I am not Ready")
+    $("#btn_ready").on 'click touchstart', () ->
+        if $("#btn_ready").text()  == "I am Ready"
+            $("#btn_ready").text("I am not Ready")
         else
-            $("#btn_ready").attr("value", "I am Ready")
+            $("#btn_ready").text("I am Ready")
         socket.emit 'ready'
 
-    $("#btn_showinfo").on 'click', () ->
+    $("#btn_showinfo").on 'click touchstart', () ->
         $("#hiddeninfo").toggle()
