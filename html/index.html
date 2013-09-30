@@ -16,7 +16,7 @@
     <div class="container">
         <form class="form-signin" id="form-signin">
             <h2 class="form-signin-heading">Please enter a name</h2>
-            <input type="text" id="playername" class="form-control" placeholder="Name" autofocus>
+            <input type="text" id="playername" class="form-control" maxlength="16" placeholder="Name" autofocus>
             <br />
             <button id="btn_signin" class="btn btn-lg btn-primary btn-block">Go</button>
         </form>
@@ -32,10 +32,32 @@
         </div>
 
         <div id="game">
-            <ul class="list-group" id="hiddeninfo">
-                <li class="list-group-item" id="myrole"></li>
-            </ul>
+            <h2>Avalon</h2>
+            <form id="form-select-mission">
+                <ul class="list-group" id="players"></ul>
+                <button class="btn btn-lg btn-primary btn-block" id="btn_select_mission">Propose Quest</button>
+            </form>
             <button class="btn btn-lg btn-warning btn-block" id="btn_showinfo">Show Hidden Info</button>
+            <ul class="list-group" id="hiddeninfo"></ul>
+            <br />
+            <button class="btn btn-lg btn-info btn-block" id="btn_quest">Go on a Quest</button>
+            <div class="panel panel-default" id="quest">
+                <div class="panel-heading">
+                    <div class="panel-title">Quest</div>
+                </div>
+                <br />
+                <div class="btn-group" data-toggle="buttons">
+                    <label class="btn btn-success">
+                        <input type="radio" name="quest" value="success"><span class="questicon">&#x2714;</span> Success
+                    </label>
+                    <label class="btn btn-danger">
+                        <input type="radio" name="quest" value="fail">Fail <span class="questicon">&#x2715;</span>
+                    </label>
+                </div>
+                <br />
+                <br />
+                <button class="btn btn-primary btn-block" id="btn_submitquest">Submit</button>
+            </div>
         </div>
     </div>
 </html>

@@ -19,6 +19,25 @@ a {
 #hiddeninfo {
     display: none;
 }
+#quest {
+    text-align: center;
+}
+#quest label {
+    display: none
+    width: 120px;
+}
+#quest .active {
+    font-weight: bold;
+}
+.questicon {
+    display: none;
+}
+.active .questicon {
+    display: inline;
+}
+/*#quest input[type="radio"] {
+    display: none;
+}*/
 
 .evil {
     color: red;
@@ -26,4 +45,14 @@ a {
 
 .good {
     color: blue;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+li.success {
+    color: #ffffff;
+    background-color: #5cb85c;
+    border-color: #4cae4c;
 }

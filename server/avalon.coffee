@@ -14,20 +14,28 @@ send_game_list = () ->
 
 send_game_info = (game) ->
     data =
-        started : game.started
-        id      : game.id
-        roles   : game.roles
+        started         : game.started
+        id              : game.id
+        roles           : game.roles
+        currentLeader   : game.currentLeader
+        currentMission  : game.currentMission
+        votes           : game.votes
+        missions        : game.missions
 
+    #Overwrite player data (to hide secret info)
+    #Split out socket ids while we're at it, no need to send them
     players = []
     socks = []
     for p in game.players
         socks.push(io.sockets.socket(p.socket))
         players.push
+            id          : p.id
             name        : p.name
             ready       : p.ready
 
     data.players = players
 
+    #Add in secret info specific to player as we go
     for s, i in socks
         data.players[i].role = game.players[i].role
         data.players[i].isEvil = game.players[i].isEvil
@@ -112,6 +120,10 @@ start_game = (game) ->
                         p.info.push
                             otherPlayer : o.name
                             information : "magic"
+
+    game.setup_missions()
+    leader = Math.floor Math.random() * game.players.length
+    game.currentLeader = game.players[leader].id
 
 #
 # Socket handling
