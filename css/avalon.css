@@ -19,25 +19,33 @@ a {
 #hiddeninfo {
     display: none;
 }
-#quest {
+#vote {
+    display: none;
+}
+#leaderinfo {
+    display: none;
+    text-align: center;
+    padding: 4px;
+}
+#btn_select_mission {
+    display: none;
+    margin-bottom: 10px;
+}
+.panel-popup {
     text-align: center;
 }
-#quest label {
-    display: none
+.panel-popup label {
     width: 120px;
 }
-#quest .active {
+.panel-popup .active {
     font-weight: bold;
 }
-.questicon {
+.btnicon {
     display: none;
 }
-.active .questicon {
+.active .btnicon {
     display: inline;
 }
-/*#quest input[type="radio"] {
-    display: none;
-}*/
 
 .evil {
     color: red;
@@ -51,8 +59,42 @@ a {
     font-weight: bold;
 }
 
+.btn-panel {
+    width: 90%;
+}
+
 li.success {
-    color: #ffffff;
     background-color: #5cb85c;
-    border-color: #4cae4c;
+    color: #ffffff;
+    background-image: -webkit-gradient(linear, left 0%, left 100%, from(#5cb85c), to(#449d44));
+    background-image: -webkit-linear-gradient(top, #5cb85c, 0%, #449d44, 100%);
+    background-image: -moz-linear-gradient(top, #5cb85c 0%, #449d44 100%);
+    background-image: linear-gradient(to bottom, #5cb85c 0%, #449d44 100%);
+    background-repeat: repeat-x;
+    border-color: #419641;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff5cb85c', endColorstr='#ff449d44', GradientType=0);
+}
+
+.btn-approve {
+    background-color: #ffffff;
+    color: #000000;
+    background-image: -webkit-gradient(linear, left 0%, left 100%, from(#ffffff), to(#e5e5e5));
+    background-image: -webkit-linear-gradient(top, #ffffff, 0%, #e5e5e5, 100%);
+    background-image: -moz-linear-gradient(top, #ffffff 0%, #e5e5e5 100%);
+    background-image: linear-gradient(to bottom, #ffffff 0%, #e5e5e5 100%);
+    background-repeat: repeat-x;
+    border-color: #000000;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#ffe5e5e5', GradientType=0);
+}
+
+.btn-deny {
+    background-color: #45484d;
+    color: #ffffff;
+    background-image: -webkit-gradient(linear, left 0%, left 100%, from(#45484d), to(#000000));
+    background-image: -webkit-linear-gradient(top, #45484d, 0%, #000000, 100%);
+    background-image: -moz-linear-gradient(top, #45484d 0%, #000000 100%);
+    background-image: linear-gradient(to bottom, #45484d 0%, #000000 100%);
+    background-repeat: repeat-x;
+    border-color: #000000;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff45484d', endColorstr='#ff000000', GradientType=0);
 }

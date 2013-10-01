@@ -7,8 +7,14 @@ db = mongoose.connect(db_url)
 # Database schema definition
 #
 
+GAME_LOBBY      = 0
+GAME_PROPOSE    = 1
+GAME_VOTE       = 2
+GAME_QUEST      = 3
+GAME_FINISHED   = 4
+
 gameSchema = new mongoose.Schema
-    started     : {type: Boolean, default: false}
+    state       : {type: Number, default: GAME_LOBBY}
     roles       : [
         name    : String
         isEvil  : Boolean
@@ -36,7 +42,10 @@ gameSchema = new mongoose.Schema
     ]
     votes       : [
         team    : [Number]
-        votes   : [Number, Boolean]
+        votes   : [
+            id      : Number
+            vote    : Boolean
+        ]
     ]
     currentMission  : Number
     currentLeader   : Number
@@ -46,14 +55,17 @@ gameSchema.methods.name = () ->
     return names.join(', ')
 
 gameSchema.methods.add_player = (name, sock) ->
+    new_id = this.players.length
     this.players.push
-        id  : this.players.length
+        id  : new_id
         name : name
         socket : sock
         ready : false
         role : undefined
         isEvil : undefined
         info : []
+
+    return new_id
 
 mission_reqs =
     5 : [2, 3, 2, 3, 3]
@@ -70,6 +82,8 @@ gameSchema.methods.setup_missions = () ->
             numReq : mission_reqs[np][i]
             failsReq : if i == 3 && np >= 7 then 2 else 1
             players : []
+
+    this.currentMission = 0
 
 Game = mongoose.model('Game', gameSchema)
 

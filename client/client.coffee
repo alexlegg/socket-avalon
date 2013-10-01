@@ -3,6 +3,12 @@ socket.on 'connect', (data) ->
     console.log(data)
     console.log("connected")
 
+GAME_LOBBY      = 0
+GAME_PROPOSE    = 1
+GAME_VOTE       = 2
+GAME_QUEST      = 3
+GAME_FINISHED   = 4
+
 socket.on 'gamelist', (games) ->
     $("#form-signin").hide()
     $("#lobby").show()
@@ -20,7 +26,7 @@ socket.on 'gamelist', (games) ->
 
 socket.on 'gameinfo', (game) ->
     $("#lobby").hide()
-    if !game.started
+    if game.state == GAME_LOBBY
         $("#pregame").show()
         $("#gameinfo").empty()
         for p in game.players
@@ -34,6 +40,7 @@ socket.on 'gameinfo', (game) ->
         $("#pregame").hide()
         $("#game").show()
 
+        #Draw the list of players
         me = game.players[game.me]
         $("#players").empty()
         for p in game.players
@@ -45,12 +52,30 @@ socket.on 'gameinfo', (game) ->
                 .addClass("pull-right")
                 .attr(style : "font-size: 16px;")
 
+            #Add an icon to the leader
             if game.currentLeader == p.id
                 icons.append('\u2654')
 
-            if game.currentLeader == me.id
+            if game.state == GAME_VOTE
+                currVote = game.votes[game.votes.length - 1]
+
+                #Add an icon to proposed team members
+                if p.id in currVote.team
+                    icons.append('\u2694')
+                    li.addClass("success")
+
+                #Add an icon for votes
+                for v in currVote.votes
+                    if p.id == v.id
+                        voteicon = if v.vote then '\u2714' else '\u2715'
+                        icons.append(voteicon)
+
+            #Make players selectable for the leader (to propose quest)
+            if game.state == GAME_PROPOSE && game.currentLeader == me.id
+                mission = game.missions[game.currentMission]
+                window.mission_max = mission.numReq #FIXME global var :(
                 li.on 'click', (e) ->
-                    select_for_mission($(e.target))
+                    select_for_mission(mission.numReq, $(e.target))
                 input = $("<input>").attr
                     type    : 'hidden'
                     name    : p.id
@@ -60,11 +85,21 @@ socket.on 'gameinfo', (game) ->
             li.append(icons)
             $("#players").append(li)
 
-        if game.currentLeader == me.id
+        #Make quest proposal button visible to leader
+        if game.state == GAME_PROPOSE && game.currentLeader == me.id
             $("#btn_select_mission").show()
+            $("#leaderinfo").show()
         else
             $("#btn_select_mission").hide()
+            $("#leaderinfo").hide()
 
+        console.log game.state
+        if game.state == GAME_VOTE
+            $("#vote").show()
+        else
+            $("#vote").hide()
+
+        #Draw the hidden info box
         $("#hiddeninfo").empty()
         info = $("<span>").text(me.role)
         if me.isEvil
@@ -111,15 +146,22 @@ jQuery ->
     $("#form-select-mission").on 'submit', (e) ->
         e.preventDefault()
         mission = []
+        sel = []
         $("#players li").each () ->
             input = $($(this).children(":input")[0])
             if input.val() == '1'
-                mission.push input.attr('name')
-                $(this).removeClass('active')
-                $(this).addClass('success')
-        console.log(mission)
-        $("#btn_select_mission").hide()
-        #socket.emit('propose_mission', mission)
+                mission.push parseInt(input.attr('name'))
+                sel.push $(this)
+
+        if mission.length == window.mission_max
+            $("#btn_select_mission").hide()
+            for s in sel
+                s.removeClass('active')
+                s.addClass('success')
+            socket.emit('propose_mission', mission)
+        else
+            #TODO: Clean this up after successful submit
+            $("#leaderinfo").html("You must select only <b>" + window.mission_max + "</b> players for the quest!")
 
     $("#btn_quest").on 'click', () ->
         if $("#quest").is(":visible")
@@ -128,19 +170,38 @@ jQuery ->
             $("#btn_quest").text("Cancel Quest")
         $("#quest").toggle()
 
+    $("#btn_submitvote").on 'click', (e) ->
+        vote = $("input[name=vote]:checked").val() == "approve"
+        $("input[name=vote]").button('reset')
+        $("#vote").hide()
+        #TODO: prevent submitting without selecting either option
+        socket.emit('vote', vote)
+
     $("#btn_submitquest").on 'click', (e) ->
         quest_card = $("input[name=quest]:checked").val()
         console.log quest_card
         $("input[name=quest]").button('reset')
         $("#btn_quest").text("Go on a Quest")
-        $("#quest").toggle()
+        $("#quest").hide()
 
-select_for_mission = (li) ->
+
+select_for_mission = (mission_max, li) ->
     if $("#btn_select_mission").is(":visible")
+
+        #Get how many already selected
+        mission_count = 0
+        $("#players li").each () ->
+            input = $($(this).children(":input")[0])
+            mission_count += 1 if input.val() == '1'
+
+        #Toggle players if it won't exceed mission maximum
         input = $(li.children(":input")[0])
         if li.hasClass("active")
             li.removeClass("active")
             input.attr(value: 0)
         else
-            li.addClass("active")
-            input.attr(value: 1)
+            if mission_count + 1 <= mission_max
+                li.addClass("active")
+                input.attr(value: 1)
+            else
+                $("#leaderinfo").html("You must select only <b>" + window.mission_max + "</b> players for the quest!")

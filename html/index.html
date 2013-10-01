@@ -33,13 +33,36 @@
 
         <div id="game">
             <h2>Avalon</h2>
+
             <form id="form-select-mission">
                 <ul class="list-group" id="players"></ul>
+                
+                <div id="leaderinfo">You are the leader, select players from the list then press this button.</div>
                 <button class="btn btn-lg btn-primary btn-block" id="btn_select_mission">Propose Quest</button>
             </form>
+
+            <div class="panel panel-default panel-popup" id="vote">
+                <div class="panel-heading">
+                    <div class="panel-title">Vote</div>
+                </div>
+                <br />
+                <div class="btn-group" data-toggle="buttons">
+                    <label class="btn btn-approve">
+                        <input type="radio" name="vote" value="approve"><span class="btnicon">&#x2714;</span> Approve
+                    </label>
+                    <label class="btn btn-deny">
+                        <input type="radio" name="vote" value="deny">Deny <span class="btnicon">&#x2715;</span>
+                    </label>
+                </div>
+                <br />
+                <br />
+                <button class="btn btn-primary btn-block btn-panel" id="btn_submitvote">Submit</button>
+            </div>
+
             <button class="btn btn-lg btn-warning btn-block" id="btn_showinfo">Show Hidden Info</button>
             <ul class="list-group" id="hiddeninfo"></ul>
-            <br />
+
+            <!--
             <button class="btn btn-lg btn-info btn-block" id="btn_quest">Go on a Quest</button>
             <div class="panel panel-default" id="quest">
                 <div class="panel-heading">
@@ -58,6 +81,7 @@
                 <br />
                 <button class="btn btn-primary btn-block" id="btn_submitquest">Submit</button>
             </div>
+            -->
         </div>
     </div>
 </html>

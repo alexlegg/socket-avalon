@@ -6,7 +6,7 @@ send_game_list = () ->
     Game.find {}, (err, games) ->
         data = []
         for g in games
-            if (!g.started) then data.push
+            if (g.state == GAME_LOBBY) then data.push
                 id : g.id
                 name : g.name()
                 num_players : g.players.length
@@ -14,12 +14,11 @@ send_game_list = () ->
 
 send_game_info = (game) ->
     data =
-        started         : game.started
+        state           : game.state
         id              : game.id
         roles           : game.roles
         currentLeader   : game.currentLeader
         currentMission  : game.currentMission
-        votes           : game.votes
         missions        : game.missions
 
     #Overwrite player data (to hide secret info)
@@ -34,6 +33,16 @@ send_game_info = (game) ->
             ready       : p.ready
 
     data.players = players
+
+    #Hide unfinished votes
+    votes = []
+    for v in game.votes
+        dv = {team: v.team, votes: []}
+        if v.votes.length == game.players.length
+            dv.votes = v.votes
+        votes.push dv
+
+    data.votes = votes
 
     #Add in secret info specific to player as we go
     for s, i in socks
@@ -67,7 +76,7 @@ shuffle = (a) ->
       return a
 
 start_game = (game) ->
-    game.started = true
+    game.state = GAME_PROPOSE
 
     #Temporary roles (no options yet)
     game.roles.push
@@ -149,10 +158,11 @@ io.on 'connection', (socket) ->
         game_id = data.game_id
         socket.get 'name', (err, name) ->
             Game.findById game_id, (err, game) ->
-                game.add_player(name, socket.id)
+                id = game.add_player(name, socket.id)
                 game.save (err, data) ->
                     socket.leave('lobby')
                     socket.set('game', game._id)
+                    socket.set('player_id', id)
                     send_game_list()
                     send_game_info(game)
 
@@ -171,6 +181,39 @@ io.on 'connection', (socket) ->
 
                 game.save()
                 send_game_info(game)
+
+    socket.on 'propose_mission', (data) ->
+        socket.get 'game', (err, game_id) ->
+            return if game_id == null
+            Game.findById game_id, (err, game) ->
+                mission = game.missions[game.currentMission]
+                return if data.length != mission.numReq
+                game.votes.push
+                    team  : data
+                    votes : []
+                game.state = GAME_VOTE
+                game.save()
+                send_game_info(game)
+
+    socket.on 'vote', (data) ->
+        console.log "!!!!!!!!!!RECEIVED VOTE!!!!!!!!!"
+        socket.get 'game', (err, game_id) ->
+            console.log err
+            return if game_id == null
+            console.log "game_id = " + game_id
+            socket.get 'player_id', (err, player_id) ->
+                console.log err
+                return if player_id == null
+                console.log "player_id = " + player_id
+                Game.findById game_id, (err, game) ->
+                    currVote = game.votes[game.votes.length - 1]
+                    currVote.votes.push
+                        id      : player_id
+                        vote    : data
+                    game.save()
+                    console.log currVote
+                    if currVote.votes.length == game.players.length
+                        send_game_info(game)
   
     socket.on 'disconnect', () ->
         socket.get 'game', (err, game_id) ->
