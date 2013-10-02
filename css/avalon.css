@@ -46,6 +46,14 @@ a {
 .active .btnicon {
     display: inline;
 }
+#missioninfo {
+    text-align: center;
+}
+#missioninfo span {
+    width: 60px;
+    font-size: 28px;
+    font-weight: bold;
+}
 
 .evil {
     color: red;
@@ -61,6 +69,7 @@ a {
 
 .btn-panel {
     width: 90%;
+    margin: auto;
 }
 
 li.success {

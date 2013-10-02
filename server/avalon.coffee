@@ -2,6 +2,9 @@
 # Server side game functions
 #
 
+Array::sum = () ->
+    @reduce (x, y) -> x + y
+
 send_game_list = () ->
     Game.find {}, (err, games) ->
         data = []
@@ -37,7 +40,7 @@ send_game_info = (game) ->
     #Hide unfinished votes
     votes = []
     for v in game.votes
-        dv = {team: v.team, votes: []}
+        dv = {mission: v.mission, team: v.team, votes: []}
         if v.votes.length == game.players.length
             dv.votes = v.votes
         votes.push dv
@@ -147,10 +150,11 @@ io.on 'connection', (socket) ->
     socket.on 'newgame', (game) ->
         socket.get 'name', (err, name) ->
             game = new Game()
-            game.add_player(name, socket.id)
+            id = game.add_player(name, socket.id)
             game.save (err, data) ->
                 socket.leave('lobby')
                 socket.set('game', game._id)
+                socket.set('player_id', id)
                 send_game_list()
                 send_game_info(game)
 
@@ -159,6 +163,7 @@ io.on 'connection', (socket) ->
         socket.get 'name', (err, name) ->
             Game.findById game_id, (err, game) ->
                 id = game.add_player(name, socket.id)
+                console.log "SETTING ID TO: " + id
                 game.save (err, data) ->
                     socket.leave('lobby')
                     socket.set('game', game._id)
@@ -189,33 +194,78 @@ io.on 'connection', (socket) ->
                 mission = game.missions[game.currentMission]
                 return if data.length != mission.numReq
                 game.votes.push
-                    team  : data
-                    votes : []
+                    mission : game.currentMission
+                    team    : data
+                    votes   : []
                 game.state = GAME_VOTE
                 game.save()
                 send_game_info(game)
 
     socket.on 'vote', (data) ->
-        console.log "!!!!!!!!!!RECEIVED VOTE!!!!!!!!!"
         socket.get 'game', (err, game_id) ->
-            console.log err
-            return if game_id == null
-            console.log "game_id = " + game_id
+            return if game_id == undefined
             socket.get 'player_id', (err, player_id) ->
-                console.log err
-                return if player_id == null
-                console.log "player_id = " + player_id
+                return if player_id == undefined
                 Game.findById game_id, (err, game) ->
                     currVote = game.votes[game.votes.length - 1]
                     currVote.votes.push
                         id      : player_id
                         vote    : data
-                    game.save()
-                    console.log currVote
                     if currVote.votes.length == game.players.length
+                        vs = ((if v.vote then 1 else 0) for v in currVote.votes)
+                        vs = vs.sum()
+                        if vs > (game.players.length - vs)
+                            game.state = GAME_QUEST
+                        else
+                            game.state = GAME_PROPOSE
+                        game.set_next_leader()
+                        game.save()
                         send_game_info(game)
+                    else
+                        game.save()
+
+    socket.on 'quest', (data) ->
+        socket.get 'game', (err, game_id) ->
+            return if game_id == undefined
+            socket.get 'player_id', (err, player_id) ->
+                return if player_id == undefined
+                Game.findById game_id, (err, game) ->
+                    currVote = game.votes[game.votes.length - 1]
+                    return if not (player_id in currVote.team)
+                    currMission = game.missions[game.currentMission]
+                    return if player_id in (p.id for p in currMission.players)
+                    currMission.players.push
+                        id          : player_id
+                        success     : data
+
+                    if currMission.players.length == currMission.numReq
+                        #See if the mission succeeded or failed
+                        fails = ((if p.success then 0 else 1) for p in currMission.players)
+                        fails = fails.sum()
+                        if fails >= currMission.failsReq
+                            currMission.status = 1
+                        else
+                            currMission.status = 2
+
+                        #Check if the game is over
+                        succ = ((if m.status == 2 then 1 else 0) for m in game.missions)
+                        succ = succ.sum()
+                        fail = ((if m.status == 1 then 1 else 0) for m in game.missions)
+                        fail = fail.sum()
+                        if succ == 3 || fail == 3
+                            game.state = GAME_FINISHED
+                        else
+                            game.currentMission += 1
+                            game.state = GAME_PROPOSE
+
+                        game.save()
+                        send_game_info(game)
+                    else
+                        game.save()
   
     socket.on 'disconnect', () ->
         socket.get 'game', (err, game_id) ->
-            if game_id
-                leave_game(socket.id, game_id)
+            return if not game_id
+            Game.findById game_id, (err, game) ->
+                if game.status == GAME_LOBBY
+                    leave_game(socket.id, game_id)

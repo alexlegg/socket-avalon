@@ -38,9 +38,10 @@ gameSchema = new mongoose.Schema
             id      : Number
             success : Boolean
         ]
-        succeeded   : Boolean
+        status  : {type: Number, default: 0}
     ]
     votes       : [
+        mission : Number
         team    : [Number]
         votes   : [
             id      : Number
@@ -84,6 +85,19 @@ gameSchema.methods.setup_missions = () ->
             players : []
 
     this.currentMission = 0
+
+gameSchema.methods.set_next_leader = () ->
+    set_next = false
+    leader_set = false
+    for p in this.players
+        if set_next == true
+            this.currentLeader = p.id
+            leader_set = true
+            break
+        if p.id == this.currentLeader
+            set_next = true
+    if not leader_set
+        this.currentLeader = this.players[0].id
 
 Game = mongoose.model('Game', gameSchema)
 

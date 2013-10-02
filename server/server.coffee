@@ -27,7 +27,7 @@ server = http.createServer (req, res) ->
                 res.writeHead 200, { 'Content-Type': 'text/css' }
                 res.write data, 'utf8'
                 res.end()
-        when "/avalon.js", "/jquery.min.js", "/bootstrap.min.js"
+        when "/avalon.js", "/jquery.min.js", "/bootstrap.min.js", "/jquery.cookie.js"
             fs.readFile script_dir + path, (err, data) ->
                 return send404 res if err
                 res.writeHead 200, { 'Content-Type': 'text/javascript' }
