@@ -1,6 +1,5 @@
 socket = io.connect('http://' + document.domain)
 socket.on 'connect', (data) ->
-    console.log(data)
     console.log("connected")
 
 GAME_LOBBY      = 0
@@ -8,6 +7,9 @@ GAME_PROPOSE    = 1
 GAME_VOTE       = 2
 GAME_QUEST      = 3
 GAME_FINISHED   = 4
+
+socket.on 'player_id', (player_id) ->
+    $.cookie('player_id', player_id, {expires: 365})
 
 socket.on 'gamelist', (games) ->
     $("#form-signin").hide()
@@ -23,6 +25,9 @@ socket.on 'gamelist', (games) ->
                     socket.emit 'joingame', { game_id : g.id }
 
             $("#gamelist").append(join_btn)
+
+socket.on 'currentgame', (game) ->
+    $("#btn_reconnect").show()
 
 socket.on 'gameinfo', (game) ->
     $("#lobby").hide()
@@ -53,7 +58,7 @@ socket.on 'gameinfo', (game) ->
                 $("#mission" + i).addClass("good")
 
         #Draw the list of players
-        me = game.players[game.me]
+        me = game.me
         $("#players").empty()
         for p in game.players
             li = $("<li>")
@@ -145,14 +150,11 @@ socket.on 'gameinfo', (game) ->
             $("#hiddeninfo").append(li)
 
 jQuery ->
-    console.log $.cookie('playername')
-    if $.cookie('playername')
-        console.log 'blah1'
+    if $.cookie('playername') && $.cookie('player_id')
         name = $.cookie('playername')
         $("#btn_returning").text("I am " + name)
         $("#btn_returning").show()
     else
-        console.log 'blah2'
         $("#btn_returning").hide()
 
     $("#form-signin").on 'submit', (e) ->
@@ -164,11 +166,14 @@ jQuery ->
 
     $("#btn_returning").on 'click', () ->
         $("#btn_returning").hide()
-        name = $.cookie('playername')
-        socket.emit('newuser', {name: name})
+        id = $.cookie('player_id')
+        socket.emit('returninguser', id)
 
     $("#btn_newgame").on 'click', () ->
         socket.emit 'newgame'
+
+    $("#btn_reconnect").on 'click', () ->
+        socket.emit 'reconnecttogame'
 
     $("#btn_ready").on 'click', () ->
         if $("#btn_ready").text()  == "I am Ready"
@@ -191,7 +196,7 @@ jQuery ->
         $("#players li").each () ->
             input = $($(this).children(":input")[0])
             if input.val() == '1'
-                mission.push parseInt(input.attr('name'))
+                mission.push input.attr('name')
                 sel.push $(this)
 
         if mission.length == window.mission_max

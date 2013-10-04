@@ -22,6 +22,9 @@ a {
 #vote {
     display: none;
 }
+#btn_reconnect {
+    display: none;
+}
 #leaderinfo {
     display: none;
     text-align: center;

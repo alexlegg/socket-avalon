@@ -13,6 +13,16 @@ GAME_VOTE       = 2
 GAME_QUEST      = 3
 GAME_FINISHED   = 4
 
+ObjectId = mongoose.Schema.Types.ObjectId
+
+playerSchema = new mongoose.Schema
+    name        : String
+    socket      : String
+    currentGame : ObjectId
+
+Player = mongoose.model('Player', playerSchema)
+
+
 gameSchema = new mongoose.Schema
     state       : {type: Number, default: GAME_LOBBY}
     roles       : [
@@ -20,7 +30,7 @@ gameSchema = new mongoose.Schema
         isEvil  : Boolean
     ]
     players     : [
-        id      : Number
+        id      : ObjectId
         name    : String
         socket  : String
         ready   : Boolean
@@ -35,38 +45,35 @@ gameSchema = new mongoose.Schema
         numReq      : Number
         failsReq    : Number
         players     : [
-            id      : Number
+            id      : ObjectId
             success : Boolean
         ]
         status  : {type: Number, default: 0}
     ]
     votes       : [
         mission : Number
-        team    : [Number]
+        team    : [ObjectId]
         votes   : [
-            id      : Number
+            id      : ObjectId
             vote    : Boolean
         ]
     ]
     currentMission  : Number
-    currentLeader   : Number
+    currentLeader   : ObjectId
 
 gameSchema.methods.name = () ->
     names = @players.map (p) -> p.name
     return names.join(', ')
 
-gameSchema.methods.add_player = (name, sock) ->
-    new_id = this.players.length
+gameSchema.methods.add_player = (p) ->
     this.players.push
-        id  : new_id
-        name : name
-        socket : sock
+        id  : p._id
+        name : p.name
+        socket : p.socket
         ready : false
         role : undefined
         isEvil : undefined
         info : []
-
-    return new_id
 
 mission_reqs =
     5 : [2, 3, 2, 3, 3]
@@ -94,7 +101,7 @@ gameSchema.methods.set_next_leader = () ->
             this.currentLeader = p.id
             leader_set = true
             break
-        if p.id == this.currentLeader
+        if p.id.equals(this.currentLeader)
             set_next = true
     if not leader_set
         this.currentLeader = this.players[0].id

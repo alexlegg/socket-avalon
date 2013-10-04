@@ -52,7 +52,7 @@ send_game_info = (game) ->
         data.players[i].role = game.players[i].role
         data.players[i].isEvil = game.players[i].isEvil
         data.players[i].info = game.players[i].info
-        data.me = i
+        data.me = data.players[i]
         s.emit('gameinfo', data)
         data.players[i].role = undefined
         data.players[i].isEvil = undefined
@@ -143,33 +143,69 @@ start_game = (game) ->
 
 io.on 'connection', (socket) ->
     socket.on 'newuser', (data) ->
-        socket.set('name', data['name'])
         socket.join('lobby')
+        player = new Player()
+        player.name = data['name']
+        player.socket = socket.id
+        player.save()
+        socket.set('player_id', player._id)
+        socket.emit('player_id', player._id)
         send_game_list()
 
+    socket.on 'returninguser', (data) ->
+        Player.findById data, (err, player) ->
+            return if not player
+            socket.join('lobby')
+            player.socket = socket.id
+            player.save()
+            socket.set('player_id', player._id)
+            send_game_list()
+            Game.findById player.currentGame, (err, game) ->
+                return if not game
+                if game.state != GAME_FINISHED && game.state != GAME_LOBBY
+                    socket.emit('currentgame', game._id)
+
     socket.on 'newgame', (game) ->
-        socket.get 'name', (err, name) ->
-            game = new Game()
-            id = game.add_player(name, socket.id)
-            game.save (err, data) ->
-                socket.leave('lobby')
-                socket.set('game', game._id)
-                socket.set('player_id', id)
-                send_game_list()
-                send_game_info(game)
+        socket.get 'player_id', (err, player_id) ->
+            Player.findById player_id, (err, player) ->
+                return if err || player == null
+                game = new Game()
+                game.add_player player
+                game.save (err, game) ->
+                    socket.leave('lobby')
+                    socket.set('game', game._id)
+                    player.currentGame = game._id
+                    player.save()
+                    send_game_list()
+                    send_game_info(game)
 
     socket.on 'joingame', (data) ->
         game_id = data.game_id
-        socket.get 'name', (err, name) ->
-            Game.findById game_id, (err, game) ->
-                id = game.add_player(name, socket.id)
-                console.log "SETTING ID TO: " + id
-                game.save (err, data) ->
+        socket.get 'player_id', (err, player_id) ->
+            Player.findById player_id, (err, player) ->
+                Game.findById game_id, (err, game) ->
+                    game.add_player player
+                    game.save (err, game) ->
+                        socket.leave('lobby')
+                        socket.set('game', game._id)
+                        player.currentGame = game._id
+                        player.save()
+                        send_game_list()
+                        send_game_info(game)
+
+    socket.on 'reconnecttogame', () ->
+        socket.get 'player_id', (err, player_id) ->
+            return if not player_id
+            Player.findById player_id, (err, player) ->
+                return if not player
+                Game.findById player.currentGame, (err, game) ->
                     socket.leave('lobby')
                     socket.set('game', game._id)
-                    socket.set('player_id', id)
-                    send_game_list()
-                    send_game_info(game)
+                    for p in game.players
+                        if p.id.equals(player_id)
+                            p.socket = socket.id
+                    game.save (err, game) ->
+                        send_game_info(game)
 
     socket.on 'ready', () ->
         socket.get 'game', (err, game_id) ->
@@ -231,9 +267,17 @@ io.on 'connection', (socket) ->
                 return if player_id == undefined
                 Game.findById game_id, (err, game) ->
                     currVote = game.votes[game.votes.length - 1]
-                    return if not (player_id in currVote.team)
+
+                    #Check that the player is on the mission team
+                    for t in currVote.team
+                        in_team = true if player_id.equals(t)
+                    return if not in_team
+
+                    #Check that the player hasn't already "put in a card"
                     currMission = game.missions[game.currentMission]
-                    return if player_id in (p.id for p in currMission.players)
+                    for p in currMission.players
+                        return if player_id.equals(p.id)
+
                     currMission.players.push
                         id          : player_id
                         success     : data
