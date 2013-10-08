@@ -311,5 +311,5 @@ io.on 'connection', (socket) ->
         socket.get 'game', (err, game_id) ->
             return if not game_id
             Game.findById game_id, (err, game) ->
-                if game.status == GAME_LOBBY
+                if game.state == GAME_LOBBY
                     leave_game(socket.id, game_id)
