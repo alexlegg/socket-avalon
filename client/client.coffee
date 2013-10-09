@@ -57,14 +57,26 @@ socket.on 'gameinfo', (game) ->
             window.history.pushState({}, "", game_url)
 
         #Draw mission info
+        lastmission = undefined
         for m, i in game.missions
             $("#mission" + i).text(m.numReq)
             if m.failsReq == 2
                 $("#mission" + i).append("*")
             if m.status == 1
+                lastmission = m
                 $("#mission" + i).addClass("evil")
             else if m.status == 2
+                lastmission = m
                 $("#mission" + i).addClass("good")
+
+        #Fun
+        if false && game.state == GAME_PROPOSE
+            currVote = game.votes[game.votes.length - 1]
+            if lastmission.status == 1
+                p = $("<p>")
+                    .addClass("evil")
+                    .text("Shiiiiiit. Dan is probably Morgana")
+                $("#missioninfo").append(p)
 
         #Draw the list of players
         me = game.me

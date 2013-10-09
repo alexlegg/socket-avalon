@@ -329,7 +329,9 @@ io.on 'connection', (socket) ->
     socket.on 'disconnect', () ->
         socket.get 'game', (err, game_id) ->
             return if not game_id
-            Game.findById game_id, (err, game) ->
-                return if not game
-                if game.state == GAME_LOBBY
-                    leave_game(socket.id, game_id)
+            socket.get 'player_id', (err, player_id) ->
+                return if not player_id
+                Game.findById game_id, (err, game) ->
+                    return if not game
+                    if game.state == GAME_LOBBY
+                        leave_game(player_id, game_id)
