@@ -19,6 +19,9 @@ a {
 #hiddeninfo {
     display: none;
 }
+#quest {
+    display: none;
+}
 #vote {
     display: none;
 }

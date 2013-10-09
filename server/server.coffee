@@ -15,7 +15,7 @@ style_dir = "./css"
 server = http.createServer (req, res) ->
     path = url.parse(req.url).pathname
     switch path
-        when "/"
+        when "/", "/game"
             fs.readFile html_dir + "/index.html", (err, data) ->
                 return send404 if err
                 res.writeHead 200, { 'Content-Type': 'text/html;charset=utf-8' }

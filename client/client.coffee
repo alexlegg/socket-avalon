@@ -27,7 +27,11 @@ socket.on 'gamelist', (games) ->
             $("#gamelist").append(join_btn)
 
 socket.on 'currentgame', (game) ->
-    $("#btn_reconnect").show()
+    game_url = 'http://' + window.location.hostname + "/game"
+    if window.location.href != game_url
+        $("#btn_reconnect").show()
+    else
+        socket.emit 'reconnecttogame'
 
 socket.on 'gameinfo', (game) ->
     $("#lobby").hide()
@@ -46,6 +50,11 @@ socket.on 'gameinfo', (game) ->
     else
         $("#pregame").hide()
         $("#game").show()
+
+        #Set url so refreshing goes right back to the game
+        game_url = 'http://' + window.location.hostname + "/game"
+        if window.location.href != game_url
+            window.history.pushState({}, "", game_url)
 
         #Draw mission info
         for m, i in game.missions
@@ -124,6 +133,8 @@ socket.on 'gameinfo', (game) ->
             currVote = game.votes[game.votes.length - 1]
             if me.id in currVote.team
                 $("#quest").show()
+            else
+                $("#quest").hide()
         else
             $("#quest").hide()
 
@@ -151,9 +162,17 @@ socket.on 'gameinfo', (game) ->
 
 jQuery ->
     if $.cookie('playername') && $.cookie('player_id')
-        name = $.cookie('playername')
-        $("#btn_returning").text("I am " + name)
-        $("#btn_returning").show()
+        #If /game url then just reconnect
+        game_url = 'http://' + window.location.hostname + "/game"
+        if window.location.href == game_url
+            id = $.cookie('player_id')
+            socket.emit('returninguser', id)
+            $("#btn_returning").hide()
+        else
+            #Otherwise give option
+            name = $.cookie('playername')
+            $("#btn_returning").text("I am " + name)
+            $("#btn_returning").show()
     else
         $("#btn_returning").hide()
 
@@ -206,7 +225,6 @@ jQuery ->
                 s.addClass('success')
             socket.emit('propose_mission', mission)
         else
-            #TODO: Clean this up after successful submit
             $("#leaderinfo").html("You must select only <b>" + window.mission_max + "</b> players for the quest!")
 
     $("#btn_submitvote").on 'click', (e) ->
@@ -224,8 +242,12 @@ jQuery ->
         $("#quest .btn").each () ->
             $(this).removeClass("active")
         $("#quest").hide()
+        #TODO: prevent submitting without selecting either option
         socket.emit('quest', quest_card)
 
+    $("#btn_leavelobby").on 'click', (e) ->
+        $("#pregame").hide()
+        socket.emit 'leavegame'
 
 select_for_mission = (mission_max, li) ->
     if $("#btn_select_mission").is(":visible")

@@ -58,19 +58,19 @@ send_game_info = (game) ->
         data.players[i].isEvil = undefined
         data.players[i].info = []
 
-leave_game = (socket, game_id) ->
+leave_game = (player_id, game_id) ->
     Game.findById game_id, (err, game) ->
         for p in game.players
-            if p.socket == socket
+            if p.id.equals(player_id)
                 index = game.players.indexOf(p)
                 game.players.splice(index, 1)
                 break
-        game.save()
 
-        if game.players.length == 0
-            game.remove()
-        send_game_list()
-        send_game_info(game)
+        game.save (err, game) ->
+            if game.players.length == 0
+                game.remove()
+            send_game_list()
+            send_game_info(game)
 
 shuffle = (a) ->
       for i in [a.length-1..1]
@@ -306,10 +306,22 @@ io.on 'connection', (socket) ->
                         send_game_info(game)
                     else
                         game.save()
+
+    socket.on 'leavegame', () ->
+        socket.join('lobby')
+        socket.get 'game', (err, game_id) ->
+            return if not game_id
+            socket.get 'player_id', (err, player_id) ->
+                return if not player_id
+                Game.findById game_id, (err, game) ->
+                    return if not game
+                    if game.state == GAME_LOBBY
+                        leave_game(player_id, game_id)
   
     socket.on 'disconnect', () ->
         socket.get 'game', (err, game_id) ->
             return if not game_id
             Game.findById game_id, (err, game) ->
+                return if not game
                 if game.state == GAME_LOBBY
                     leave_game(socket.id, game_id)
