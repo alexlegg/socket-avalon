@@ -47,6 +47,14 @@ send_game_info = (game) ->
 
     data.votes = votes
 
+    #Hide individual quest cards
+    missions = []
+    for m in game.missions
+        dm = {numReq:m.numReq, failsReq: m.failsReq, status: m.status}
+        missions.push dm
+
+    data.missions = missions
+
     #Add in secret info specific to player as we go
     for s, i in socks
         data.players[i].role = game.players[i].role
