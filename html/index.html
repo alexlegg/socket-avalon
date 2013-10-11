@@ -15,14 +15,20 @@
     </head>
 
     <div class="container">
-        <form class="form-signin" id="form-signin">
-            <h2 class="form-signin-heading">Please enter a name</h2>
-            <input type="text" id="playername" class="form-control" maxlength="16" placeholder="Name" autofocus>
-            <br />
-            <button id="btn_signin" class="btn btn-lg btn-primary btn-block">Go</button>
-            <br />
-        </form>
-        <button id="btn_returning" class="btn btn-lg btn-success btn-block"></button>
+        <div id="disconnected">
+            You are disconnected. Maybe the server is down? Try refreshing.
+        </div>
+
+        <div id="signin">
+            <form class="form-signin" id="form-signin">
+                <h2 class="form-signin-heading">Please enter a name</h2>
+                <input type="text" id="playername" class="form-control" maxlength="16" placeholder="Name" autofocus>
+                <br />
+                <button id="btn_signin" class="btn btn-lg btn-primary btn-block">Go</button>
+                <br />
+            </form>
+            <button id="btn_returning" class="btn btn-lg btn-success btn-block"></button>
+        </div>
 
         <div id="lobby">
             <ul class="list-group" id="gamelist"></ul>
@@ -46,6 +52,7 @@
                 <span id="mission2"></span>
                 <span id="mission3"></span>
                 <span id="mission4"></span>
+                <p id="missionmessage"></p>
             </div>
 
             <form id="form-select-mission">

@@ -68,6 +68,7 @@ send_game_info = (game) ->
 
 leave_game = (player_id, game_id) ->
     Game.findById game_id, (err, game) ->
+        return if not game
         for p in game.players
             if p.id.equals(player_id)
                 index = game.players.indexOf(p)
@@ -170,7 +171,9 @@ io.on 'connection', (socket) ->
             send_game_list()
             Game.findById player.currentGame, (err, game) ->
                 return if not game
-                if game.state != GAME_FINISHED && game.state != GAME_LOBBY
+                if game.state == GAME_LOBBY
+                    leave_game(player.id, game.id)
+                else if game.state != GAME_FINISHED
                     socket.emit('currentgame', game._id)
 
     socket.on 'newgame', (game) ->
@@ -191,7 +194,11 @@ io.on 'connection', (socket) ->
         game_id = data.game_id
         socket.get 'player_id', (err, player_id) ->
             Player.findById player_id, (err, player) ->
+                return if not player
+                if player.currentGame
+                    leave_game(player_id, player.currentGame)
                 Game.findById game_id, (err, game) ->
+                    return if not game
                     game.add_player player
                     game.save (err, game) ->
                         socket.leave('lobby')
@@ -251,6 +258,7 @@ io.on 'connection', (socket) ->
             socket.get 'player_id', (err, player_id) ->
                 return if player_id == undefined
                 Game.findById game_id, (err, game) ->
+                    return if not game
                     currVote = game.votes[game.votes.length - 1]
                     currVote.votes.push
                         id      : player_id
@@ -274,6 +282,7 @@ io.on 'connection', (socket) ->
             socket.get 'player_id', (err, player_id) ->
                 return if player_id == undefined
                 Game.findById game_id, (err, game) ->
+                    return if not game
                     currVote = game.votes[game.votes.length - 1]
 
                     #Check that the player is on the mission team

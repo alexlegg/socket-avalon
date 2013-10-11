@@ -1,6 +1,28 @@
 socket = io.connect('http://' + document.domain)
 socket.on 'connect', (data) ->
-    console.log("connected")
+    $("#disconnected").hide()
+
+    if $.cookie('playername') && $.cookie('player_id')
+        #If /game url then just reconnect
+        game_url = 'http://' + window.location.hostname + "/game"
+        if window.location.href == game_url
+            id = $.cookie('player_id')
+            socket.emit('returninguser', id)
+            $("#btn_returning").hide()
+        else
+            #Otherwise give option
+            name = $.cookie('playername')
+            $("#btn_returning").text("I am " + name)
+            $("#btn_returning").show()
+    else
+        $("#btn_returning").hide()
+
+socket.on 'disconnect', () ->
+    $("#signin").hide()
+    $("#lobby").hide()
+    $("#pregame").hide()
+    $("#game").hide()
+    $("#disconnected").show()
 
 GAME_LOBBY      = 0
 GAME_PROPOSE    = 1
@@ -12,7 +34,7 @@ socket.on 'player_id', (player_id) ->
     $.cookie('player_id', player_id, {expires: 365})
 
 socket.on 'gamelist', (games) ->
-    $("#form-signin").hide()
+    $("#signin").hide()
     $("#lobby").show()
     $("#gamelist").empty()
     for g in games
@@ -46,7 +68,7 @@ socket.on 'gameinfo', (game) ->
                 .append($('<span>').addClass("badge").text(ready))
             $("#gameinfo").append li
     else if game.state == GAME_FINISHED
-        $("#missioninfo").append("<br />Game Over");
+        $("#missionmessage").append("<br />Game Over");
     else
         $("#pregame").hide()
         $("#game").show()
@@ -69,14 +91,19 @@ socket.on 'gameinfo', (game) ->
                 lastmission = m
                 $("#mission" + i).addClass("good")
 
-        #Fun
-        if false && game.state == GAME_PROPOSE
-            currVote = game.votes[game.votes.length - 1]
+        #Notify about last mission
+        if game.state == GAME_PROPOSE && lastmission != undefined
+            $("#missionmessage")
+                .removeClass("good")
+                .removeClass("evil")
             if lastmission.status == 1
-                p = $("<p>")
+                $("#missionmessage")
                     .addClass("evil")
-                    .text("Shiiiiiit. Dan is probably Morgana")
-                $("#missioninfo").append(p)
+                    .text("Mission failed! It was probably Dan.")
+            else
+                $("#missionmessage")
+                    .addClass("good")
+                    .text("Mission succeeded!")
 
         #Draw the list of players
         me = game.me
@@ -173,21 +200,6 @@ socket.on 'gameinfo', (game) ->
             $("#hiddeninfo").append(li)
 
 jQuery ->
-    if $.cookie('playername') && $.cookie('player_id')
-        #If /game url then just reconnect
-        game_url = 'http://' + window.location.hostname + "/game"
-        if window.location.href == game_url
-            id = $.cookie('player_id')
-            socket.emit('returninguser', id)
-            $("#btn_returning").hide()
-        else
-            #Otherwise give option
-            name = $.cookie('playername')
-            $("#btn_returning").text("I am " + name)
-            $("#btn_returning").show()
-    else
-        $("#btn_returning").hide()
-
     $("#form-signin").on 'submit', (e) ->
         if $("#playername").val().length > 0
             $("#btn_returning").hide()
