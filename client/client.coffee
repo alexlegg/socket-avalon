@@ -129,6 +129,13 @@ socket.on 'gameinfo', (game) ->
                     icons.append('\u2694')
                     li.addClass("success")
 
+                #Hourglass next to players that haven't voted
+                voted = []
+                if currVote.votes
+                    (voted.push v.id) for v in currVote.votes
+                if not (p.id in voted)
+                    icons.append('\u231b')
+
             if game.state == GAME_PROPOSE || game.state == GAME_QUEST
                 currVote = game.votes[game.votes.length - 1]
                 if currVote && currVote.mission == game.currentMission
@@ -163,7 +170,14 @@ socket.on 'gameinfo', (game) ->
 
         #Make voting panel visible during vote phase
         if game.state == GAME_VOTE
-            $("#vote").show()
+            currVote = game.votes[game.votes.length - 1]
+            voted = []
+            if currVote.votes
+                (voted.push v.id) for v in currVote.votes
+            if not (me.id in voted)
+                $("#vote").show()
+            else
+                $("#vote").hide()
         else
             $("#vote").hide()
 
@@ -252,6 +266,7 @@ jQuery ->
             $("#leaderinfo").html("You must select only <b>" + window.mission_max + "</b> players for the quest!")
 
     $("#btn_submitvote").on 'click', (e) ->
+        console.log "test!!"
         vote = $("input[name=vote]:checked").val() == "approve"
         $("input[name=vote]:checked").prop('checked', false)
         $("#vote .btn").each () ->

@@ -43,6 +43,10 @@ send_game_info = (game) ->
         dv = {mission: v.mission, team: v.team, votes: []}
         if v.votes.length == game.players.length
             dv.votes = v.votes
+        else
+            dv.votes = []
+            for pv in v.votes
+                dv.votes.push {id: pv.id}
         votes.push dv
 
     data.votes = votes
@@ -260,9 +264,17 @@ io.on 'connection', (socket) ->
                 Game.findById game_id, (err, game) ->
                     return if not game
                     currVote = game.votes[game.votes.length - 1]
+
+                    #Check to prevent double voting
+                    for p in currVote.votes
+                        voted = true if player_id.equals(p.id)
+                    return if voted
+
                     currVote.votes.push
                         id      : player_id
                         vote    : data
+
+                    #Check for vote end
                     if currVote.votes.length == game.players.length
                         vs = ((if v.vote then 1 else 0) for v in currVote.votes)
                         vs = vs.sum()
@@ -271,10 +283,8 @@ io.on 'connection', (socket) ->
                         else
                             game.state = GAME_PROPOSE
                         game.set_next_leader()
-                        game.save()
-                        send_game_info(game)
-                    else
-                        game.save()
+                    game.save()
+                    send_game_info(game)
 
     socket.on 'quest', (data) ->
         socket.get 'game', (err, game_id) ->
