@@ -43,4 +43,4 @@ send404 = (res) ->
 server.listen 80
 
 io = io.listen server
-io.set('transports', ['xhr-polling'])
+io.set('transports', ['websocket'])

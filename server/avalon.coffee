@@ -305,6 +305,12 @@ io.on 'connection', (socket) ->
                     for p in currMission.players
                         return if player_id.equals(p.id)
 
+                    #Check that player is allowed to fail if they did
+                    if data == false
+                        p = game.get_player(player_id)
+                        if not p.isEvil
+                            data = true
+
                     currMission.players.push
                         id          : player_id
                         success     : data

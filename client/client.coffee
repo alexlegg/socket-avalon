@@ -68,6 +68,20 @@ socket.on 'gameinfo', (game) ->
                 .append($('<span>').addClass("badge").text(ready))
             $("#gameinfo").append li
     else if game.state == GAME_FINISHED
+
+        #Draw mission info
+        lastmission = undefined
+        for m, i in game.missions
+            $("#mission" + i).text(m.numReq)
+            if m.failsReq == 2
+                $("#mission" + i).append("*")
+            if m.status == 1
+                lastmission = m
+                $("#mission" + i).addClass("evil")
+            else if m.status == 2
+                lastmission = m
+                $("#mission" + i).addClass("good")
+
         $("#missionmessage").append("<br />Game Over");
     else
         $("#pregame").hide()
@@ -266,17 +280,19 @@ jQuery ->
             $("#leaderinfo").html("You must select only <b>" + window.mission_max + "</b> players for the quest!")
 
     $("#btn_submitvote").on 'click', (e) ->
-        console.log "test!!"
-        vote = $("input[name=vote]:checked").val() == "approve"
+        radio = $("input[name=vote]:checked").val()
+        return if radio != "approve" && radio != "deny"
+        vote = (radio == "approve")
         $("input[name=vote]:checked").prop('checked', false)
         $("#vote .btn").each () ->
             $(this).removeClass("active")
         $("#vote").hide()
-        #TODO: prevent submitting without selecting either option
         socket.emit('vote', vote)
 
     $("#btn_submitquest").on 'click', (e) ->
-        quest_card = $("input[name=quest]:checked").val() == "success"
+        radio = $("input[name=quest]:checked").val()
+        return if radio != "success" && radio != "fail"
+        quest_card = (radio == "success")
         $("input[name=quest]:checked").prop('checked', false)
         $("#quest .btn").each () ->
             $(this).removeClass("active")

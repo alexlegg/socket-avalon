@@ -75,6 +75,12 @@ gameSchema.methods.add_player = (p) ->
         isEvil : undefined
         info : []
 
+gameSchema.methods.get_player = (id) ->
+    for p in this.players
+        if p.id.equals(id)
+            return p
+    return null
+
 mission_reqs =
     5 : [2, 3, 2, 3, 3]
     6 : [2, 3, 4, 3, 4]
