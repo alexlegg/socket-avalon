@@ -1,4 +1,4 @@
-socket = io.connect('http://' + document.domain)
+socket = io.connect('http://' + IP)
 socket.on 'connect', (data) ->
     $("#disconnected").hide()
 

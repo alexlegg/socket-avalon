@@ -1,7 +1,7 @@
-SERVERSRC = server/server.coffee server/db.coffee server/avalon.coffee
+SERVERSRC = server/config.coffee server/server.coffee server/db.coffee server/avalon.coffee
 SERVER = avalon.js
 
-CLIENTSRC = client/client.coffee
+CLIENTSRC = server/config.coffee client/client.coffee
 CLIENT = js/avalon.js
 
 .PHONY: all

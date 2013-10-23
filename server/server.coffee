@@ -40,7 +40,7 @@ send404 = (res) ->
     res.write "404"
     res.end()
  
-server.listen 80
+server.listen PORT
 
 io = io.listen server
 io.set('transports', ['websocket'])
