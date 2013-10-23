@@ -1,4 +1,4 @@
-socket = io.connect('http://' + IP)
+socket = io.connect('http://' + IP + ":" + PORT)
 socket.on 'connect', (data) ->
     $("#disconnected").hide()
 
