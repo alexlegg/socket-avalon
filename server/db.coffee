@@ -1,5 +1,6 @@
 db_url = "localhost"
 mongoose = require('mongoose')
+bcrypt = require('bcrypt')
 
 db = mongoose.connect(db_url)
 
@@ -17,11 +18,20 @@ ObjectId = mongoose.Schema.Types.ObjectId
 
 playerSchema = new mongoose.Schema
     name        : String
+    password    : String
     socket      : String
     currentGame : ObjectId
 
 Player = mongoose.model('Player', playerSchema)
 
+playerSchema.methods.set_password = (password, cb) ->
+    bcrypt.hash password, 8, (err, hash) ->
+        this.password = hash
+        cb()
+
+playerSchema.methods.check_password = (password, cb) ->
+    bcrypt.compare password, this.password, (err, res) ->
+        cb(err, res)
 
 gameSchema = new mongoose.Schema
     state       : {type: Number, default: GAME_LOBBY}

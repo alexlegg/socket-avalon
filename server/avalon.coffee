@@ -155,7 +155,7 @@ start_game = (game) ->
 #
 
 io.on 'connection', (socket) ->
-    socket.on 'newuser', (data) ->
+    socket.on 'login', (data) ->
         socket.join('lobby')
         player = new Player()
         player.name = data['name']
@@ -165,8 +165,8 @@ io.on 'connection', (socket) ->
         socket.emit('player_id', player._id)
         send_game_list()
 
-    socket.on 'returninguser', (data) ->
-        Player.findById data, (err, player) ->
+    socket.on 'login_cookie', (player_id) ->
+        Player.findById player_id, (err, player) ->
             return if not player
             socket.join('lobby')
             player.socket = socket.id
