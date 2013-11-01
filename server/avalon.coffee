@@ -281,6 +281,7 @@ io.on 'connection', (socket) ->
                         if vs > (game.players.length - vs)
                             game.state = GAME_QUEST
                         else
+                            #TODO:Check for too many failed votes
                             game.state = GAME_PROPOSE
                         game.set_next_leader()
                     game.save()

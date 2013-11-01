@@ -122,5 +122,7 @@ gameSchema.methods.set_next_leader = () ->
     if not leader_set
         this.currentLeader = this.players[0].id
 
+#gameSchema.methods.get_
+
 Game = mongoose.model('Game', gameSchema)
 
