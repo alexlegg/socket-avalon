@@ -60,6 +60,7 @@ jQuery ->
 
     socket.on 'gameinfo', (game) ->
         $("#lobby").hide()
+
         if game.state == GAME_LOBBY
             $("#pregame").show()
             $("#gameinfo").empty()
@@ -70,6 +71,7 @@ jQuery ->
                     .text(p.name)
                     .append($('<span>').addClass("badge").text(ready))
                 $("#gameinfo").append li
+
         else if game.state == GAME_FINISHED
 
             #Draw mission info
@@ -86,6 +88,7 @@ jQuery ->
                     $("#mission" + i).addClass("good")
 
             $("#missionmessage").append("<br />Game Over");
+
         else
             $("#pregame").hide()
             $("#game").show()
@@ -109,18 +112,30 @@ jQuery ->
                     $("#mission" + i).addClass("good")
 
             #Notify about last mission
-            if game.state == GAME_PROPOSE && lastmission != undefined
+            if game.state == GAME_PROPOSE
                 $("#missionmessage")
                     .removeClass("good")
                     .removeClass("evil")
-                if lastmission.status == 1
+
+                #Show vote count
+                votecount = 0
+                for v in game.votes
+                    if v.mission == game.currentMission
+                        votecount += 1
+
+                console.log votecount
+                if votecount > 0
                     $("#missionmessage")
-                        .addClass("evil")
-                        .text("Mission failed! It was probably Dan.")
-                else
-                    $("#missionmessage")
-                        .addClass("good")
-                        .text("Mission succeeded!")
+                        .text("Failed voting rounds: " + votecount)
+                else if lastmission != undefined
+                    if lastmission.status == 1
+                        $("#missionmessage")
+                            .addClass("evil")
+                            .text("Mission failed! It was probably Dan.")
+                    else
+                        $("#missionmessage")
+                            .addClass("good")
+                            .text("Mission succeeded!")
 
             #Draw the list of players
             me = game.me
