@@ -32,6 +32,7 @@
         </div>
 
         <div id="lobby">
+            <h2 style="text-align: center">Avalon</h2>
             <ul class="list-group" id="gamelist"></ul>
             <button class="btn btn-lg btn-primary btn-block" id="btn_newgame">New Game</button>
             <br />
@@ -56,17 +57,10 @@
                 <p id="missionmessage"></p>
             </div>
 
-            <form id="form-select-mission">
-                <ul class="list-group" id="players"></ul>
-                
-                <div id="leaderinfo">You are the leader, select players from the list then press this button.</div>
-                <button class="btn btn-lg btn-primary btn-block" id="btn_select_mission">Propose Quest</button>
-            </form>
-
             <div class="panel panel-default panel-popup" id="vote">
-                <div class="panel-heading">
+                <!--<div class="panel-heading">
                     <div class="panel-title">Vote</div>
-                </div>
+                </div>-->
                 <br />
                 <div class="btn-group" data-toggle="buttons">
                     <label class="btn btn-approve">
@@ -79,15 +73,13 @@
                 <br />
                 <br />
                 <button class="btn btn-primary btn-block btn-panel" id="btn_submitvote">Submit</button>
+                <br />
             </div>
 
-            <button class="btn btn-lg btn-warning btn-block" id="btn_showinfo">Show Hidden Info</button>
-            <ul class="list-group" id="hiddeninfo"></ul>
-
             <div class="panel panel-default panel-popup" id="quest">
-                <div class="panel-heading">
+                <!--<div class="panel-heading">
                     <div class="panel-title">Quest</div>
-                </div>
+                </div>-->
                 <br />
                 <div class="btn-group" data-toggle="buttons">
                     <label class="btn btn-success">
@@ -100,7 +92,22 @@
                 <br />
                 <br />
                 <button class="btn btn-primary btn-block btn-panel" id="btn_submitquest">Submit</button>
+                <br />
             </div>
+
+            <form id="form-select-mission">
+                <ul class="list-group" id="players"></ul>
+                
+                <div id="leaderinfo">You are the leader, select players from the list then press this button.</div>
+                <button class="btn btn-lg btn-primary btn-block" id="btn_select_mission">Propose Quest</button>
+            </form>
+
+            <button class="btn btn-lg btn-warning btn-block" id="btn_showinfo">Show Hidden Info</button>
+            <ul class="list-group" id="hiddeninfo"></ul>
+
+            <br />
+            <button class="btn btn-lg btn-danger btn-block" id="btn_quit">Quit Game</button>
+
             <br />
         </div>
     </div>

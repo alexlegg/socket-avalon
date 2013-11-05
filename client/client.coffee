@@ -137,6 +137,12 @@ jQuery ->
                             .addClass("good")
                             .text("Mission succeeded!")
 
+            if game.state == GAME_QUEST
+                $("#missionmessage")
+                    .removeClass("good")
+                    .removeClass("evil")
+                    .text("Mission is underway...")
+
             #Draw the list of players
             me = game.me
             $("#players").empty()
@@ -318,6 +324,9 @@ jQuery ->
         $("#quest").hide()
         #TODO: prevent submitting without selecting either option
         socket.emit('quest', quest_card)
+
+    $("#btn_quit").on 'click', (e) ->
+        window.location.href = 'http://' + window.location.hostname
 
     $("#btn_leavelobby").on 'click', (e) ->
         $("#pregame").hide()
