@@ -122,7 +122,16 @@ gameSchema.methods.set_next_leader = () ->
     if not leader_set
         this.currentLeader = this.players[0].id
 
-#gameSchema.methods.get_
+gameSchema.methods.check_for_game_end = () ->
+    succ = ((if m.status == 2 then 1 else 0) for m in this.missions)
+    succ = succ.sum()
+    fail = ((if m.status == 1 then 1 else 0) for m in this.missions)
+    fail = fail.sum()
+    if succ == 3 || fail == 3
+        this.state = GAME_FINISHED
+    else
+        this.currentMission += 1
+        this.state = GAME_PROPOSE
 
 Game = mongoose.model('Game', gameSchema)
 

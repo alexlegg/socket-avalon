@@ -281,8 +281,19 @@ io.on 'connection', (socket) ->
                         if vs > (game.players.length - vs)
                             game.state = GAME_QUEST
                         else
-                            #TODO:Check for too many failed votes
                             game.state = GAME_PROPOSE
+
+                            #Check for too many failed votes
+                            votecount = 0
+                            for v in game.votes
+                                if v.mission == game.currentMission
+                                    votecount += 1
+
+                            if votecount == 5
+                                currMission = game.missions[game.currentMission]
+                                currMission.status = 1
+                                game.check_for_game_end()
+
                         game.set_next_leader()
                     game.save()
                     send_game_info(game)
@@ -325,17 +336,7 @@ io.on 'connection', (socket) ->
                         else
                             currMission.status = 2
 
-                        #Check if the game is over
-                        succ = ((if m.status == 2 then 1 else 0) for m in game.missions)
-                        succ = succ.sum()
-                        fail = ((if m.status == 1 then 1 else 0) for m in game.missions)
-                        fail = fail.sum()
-                        if succ == 3 || fail == 3
-                            game.state = GAME_FINISHED
-                        else
-                            game.currentMission += 1
-                            game.state = GAME_PROPOSE
-
+                        game.check_for_game_end()
                         game.save()
                         send_game_info(game)
                     else
