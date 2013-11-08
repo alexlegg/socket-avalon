@@ -34,6 +34,7 @@ send_game_info = (game) ->
             id          : p.id
             name        : p.name
             ready       : p.ready
+            order       : p.order
 
     data.players = players
 
@@ -91,7 +92,7 @@ shuffle = (a) ->
           [a[i], a[j]] = [a[j], a[i]]
       return a
 
-start_game = (game) ->
+start_game = (game, order) ->
     game.state = GAME_PROPOSE
 
     #Temporary roles (no options yet)
@@ -125,10 +126,19 @@ start_game = (game) ->
 
     #Assign roles
     playerroles = shuffle(game.roles)
-    for p in game.players
+    for p, i in game.players
         r = playerroles.pop()
         p.role = r.name
         p.isEvil = r.isEvil
+        if i == 0
+            p.order = 0
+        else
+            p.order = order[p.id]
+
+    #Sort by order
+    console.log game.players
+    game.players.sort((a, b) -> a.order - b.order)
+    console.log game.players
 
     #Give info
     for p in game.players
@@ -237,7 +247,21 @@ io.on 'connection', (socket) ->
                     all_ready = false if !p.ready
 
                 if game.players.length >= 5 && all_ready
-                    start_game(game)
+                    game.state = GAME_PREGAME
+
+                game.save()
+                send_game_info(game)
+
+    socket.on 'startgame', (data) ->
+        socket.get 'game', (err, game_id) ->
+            return if game_id == null
+            Game.findById game_id, (err, game) ->
+                order = data['order']
+
+                #Sanity check
+                return if Object.keys(order).length + 1 != game.players.length
+
+                start_game(game, order)
 
                 game.save()
                 send_game_info(game)

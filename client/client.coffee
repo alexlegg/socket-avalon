@@ -28,10 +28,12 @@ jQuery ->
         $("#disconnected").show()
 
     GAME_LOBBY      = 0
-    GAME_PROPOSE    = 1
-    GAME_VOTE       = 2
-    GAME_QUEST      = 3
-    GAME_FINISHED   = 4
+    GAME_PREGAME    = 1
+    GAME_PROPOSE    = 2
+    GAME_VOTE       = 3
+    GAME_QUEST      = 4
+    GAME_ASSASSIN   = 5
+    GAME_FINISHED   = 6
 
     socket.on 'player_id', (player_id) ->
         $.cookie('player_id', player_id, {expires: 365})
@@ -45,7 +47,7 @@ jQuery ->
                 join_btn = $('<a>')
                     .addClass("list-group-item")
                     .text(g.name)
-                    .append($('<span>').addClass("badge").text(g.num_players))
+                    .append($('<span>').addClass("pull-right").text(g.num_players))
                     .click () ->
                         socket.emit 'joingame', { game_id : g.id }
 
@@ -69,8 +71,10 @@ jQuery ->
                 li = $('<li>')
                     .addClass("list-group-item")
                     .text(p.name)
-                    .append($('<span>').addClass("badge").text(ready))
+                    .append($('<span>').addClass("pull-right").text(ready))
                 $("#gameinfo").append li
+
+            window.have_game_info = false
 
         else if game.state == GAME_FINISHED
 
@@ -89,14 +93,42 @@ jQuery ->
 
             $("#missionmessage").append("<br />Game Over");
 
-        else
-            $("#pregame").hide()
-            $("#game").show()
+        else if game.state == GAME_PREGAME
+            $("#pregame").show()
+            $("#btn_ready").hide()
+            $("#btn_leavelobby").hide()
 
             #Set url so refreshing goes right back to the game
             game_url = 'http://' + window.location.hostname + "/game"
             if window.location.href != game_url
                 window.history.pushState({}, "", game_url)
+
+            if window.have_game_info == true
+                return
+
+            $("#gameinfo").empty()
+
+            for p, i in game.players
+                player_id = $("<input>")
+                    .attr("type", "hidden")
+                    .attr("value", p.id)
+                li = $('<li>')
+                    .addClass("list-group-item")
+                    .text(p.name)
+                    .attr("id", "player" + i)
+                    .append(player_id)
+
+                $("#gameinfo").append li
+                if game.me.id == p.id && i == 0
+                    $("#btn_start_game").show()
+                    $("#gameinfo").sortable
+                        items : "li:not(:first)"
+
+            window.have_game_info = true
+
+        else
+            $("#pregame").hide()
+            $("#game").show()
 
             #Draw mission info
             lastmission = undefined
@@ -123,7 +155,6 @@ jQuery ->
                     if v.mission == game.currentMission
                         votecount += 1
 
-                console.log votecount
                 if votecount > 0
                     $("#missionmessage")
                         .text("Failed voting rounds: " + votecount)
@@ -277,6 +308,16 @@ jQuery ->
         else
             $("#btn_ready").text("I am Ready")
         socket.emit 'ready'
+
+    $("#btn_start_game").on 'click', () ->
+        players = $("#gameinfo").sortable("toArray")
+        sorted = {}
+        for p, i in players
+            input = $("#" + p + " input")[0]
+            player_id = $(input).attr("value")
+            sorted[player_id] = i + 1
+        
+        socket.emit('startgame', {order: sorted})
 
     $("#btn_showinfo").on 'click', () ->
         if $("#hiddeninfo").is(":visible")

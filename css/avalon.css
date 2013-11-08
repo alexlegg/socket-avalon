@@ -25,6 +25,9 @@ a {
 #vote {
     display: none;
 }
+#btn_start_game {
+    display: none;
+}
 #btn_reconnect {
     display: none;
 }
@@ -112,4 +115,22 @@ li.success {
     background-repeat: repeat-x;
     border-color: #000000;
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff45484d', endColorstr='#ff000000', GradientType=0);
+}
+
+body.dragging, body.dragging * {
+    cursor: move !important;
+}
+
+.dragged {
+    position: absolute;
+    opacity: 0.5;
+    z-index: 2000;
+}
+
+#gameinfo li.placeholder {
+    position: relative;
+}
+
+#gameinfo li.placeholder :before {
+    postion: absolute;
 }

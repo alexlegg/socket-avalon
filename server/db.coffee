@@ -9,10 +9,12 @@ db = mongoose.connect(db_url)
 #
 
 GAME_LOBBY      = 0
-GAME_PROPOSE    = 1
-GAME_VOTE       = 2
-GAME_QUEST      = 3
-GAME_FINISHED   = 4
+GAME_PREGAME    = 1
+GAME_PROPOSE    = 2
+GAME_VOTE       = 3
+GAME_QUEST      = 4
+GAME_ASSASSIN   = 5
+GAME_FINISHED   = 6
 
 ObjectId = mongoose.Schema.Types.ObjectId
 
@@ -44,6 +46,7 @@ gameSchema = new mongoose.Schema
         name    : String
         socket  : String
         ready   : Boolean
+        order   : Number
         role    : String
         isEvil  : Boolean
         info    : [

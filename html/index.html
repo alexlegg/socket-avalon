@@ -6,6 +6,8 @@
         <script src="/socket.io/socket.io.js"></script>
         <script src="jquery.min.js"></script>
         <script src="jquery.cookie.js"></script>
+        <script src="jquery.ui.min.js"></script>
+        <script src="jquery.touch-punch.min.js"></script>
         <script src="avalon.js"></script>
         <link rel="stylesheet" href="bootstrap.min.css">
         <link rel="stylesheet" href="bootstrap-theme.min.css">
@@ -40,9 +42,12 @@
         </div>
 
         <div id="pregame">
+            <h2 style="text-align: center">Avalon</h2>
             <ul class="list-group" id="gameinfo"></ul>
             <button class="btn btn-lg btn-primary btn-block" id="btn_ready">I am Ready</button>
             <button class="btn btn-lg btn-danger btn-block" id="btn_leavelobby">Leave Game</button>
+
+            <button class="btn btn-lg btn-primary btn-block" id="btn_start_game">Start Game</button>
         </div>
 
         <div id="game">
