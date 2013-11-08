@@ -28,6 +28,10 @@ a {
 #btn_start_game {
     display: none;
 }
+#waitforhost {
+    display: none;
+    text-align: center;
+}
 #btn_reconnect {
     display: none;
 }

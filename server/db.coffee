@@ -113,17 +113,14 @@ gameSchema.methods.setup_missions = () ->
     this.currentMission = 0
 
 gameSchema.methods.set_next_leader = () ->
-    set_next = false
-    leader_set = false
+    next = 0
     for p in this.players
-        if set_next == true
-            this.currentLeader = p.id
-            leader_set = true
-            break
         if p.id.equals(this.currentLeader)
-            set_next = true
-    if not leader_set
-        this.currentLeader = this.players[0].id
+            next = (p.order + 1) % this.players.length
+
+    for p in this.players
+        if p.order == next
+            this.currentLeader = p.id
 
 gameSchema.methods.check_for_game_end = () ->
     succ = ((if m.status == 2 then 1 else 0) for m in this.missions)

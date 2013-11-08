@@ -108,6 +108,7 @@ jQuery ->
 
             $("#gameinfo").empty()
 
+            ishost = false
             for p, i in game.players
                 player_id = $("<input>")
                     .attr("type", "hidden")
@@ -120,9 +121,13 @@ jQuery ->
 
                 $("#gameinfo").append li
                 if game.me.id == p.id && i == 0
+                    ishost = true
                     $("#btn_start_game").show()
                     $("#gameinfo").sortable
                         items : "li:not(:first)"
+
+            if not ishost
+                $("#waitforhost").show()
 
             window.have_game_info = true
 

@@ -136,9 +136,7 @@ start_game = (game, order) ->
             p.order = order[p.id]
 
     #Sort by order
-    console.log game.players
     game.players.sort((a, b) -> a.order - b.order)
-    console.log game.players
 
     #Give info
     for p in game.players
