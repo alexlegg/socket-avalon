@@ -127,7 +127,12 @@ gameSchema.methods.check_for_game_end = () ->
     succ = succ.sum()
     fail = ((if m.status == 1 then 1 else 0) for m in this.missions)
     fail = fail.sum()
-    if succ == 3 || fail == 3
+    if succ == 3
+        this.state = GAME_ASSASSIN
+        for p in this.players
+            if p.role == "Assassin"
+                this.currentLeader = p.id
+    else if fail == 3
         this.state = GAME_FINISHED
     else
         this.currentMission += 1

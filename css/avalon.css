@@ -44,6 +44,10 @@ a {
     display: none;
     margin-bottom: 10px;
 }
+#btn_assassinate {
+    display: none;
+    margin-bottom: 10px;
+}
 .panel-popup {
     text-align: center;
 }
