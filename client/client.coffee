@@ -222,7 +222,7 @@ jQuery ->
                 #Make players selectable for the leader (to propose quest)
                 if game.state == GAME_PROPOSE && game.currentLeader == me.id
                     mission = game.missions[game.currentMission]
-                    window.mission_max = mission.numReq #FIXME global var :(
+                    window.mission_max = mission.numReq
                     li.on 'click', (e) ->
                         select_for_mission(mission.numReq, $(e.target))
                     input = $("<input>").attr
@@ -347,6 +347,7 @@ jQuery ->
                 s.removeClass('active')
                 s.addClass('success')
             socket.emit('propose_mission', mission)
+            $("#leaderinfo").html("You are the leader, select players from the list then press this button.")
         else
             $("#leaderinfo").html("You must select only <b>" + window.mission_max + "</b> players for the quest!")
 
