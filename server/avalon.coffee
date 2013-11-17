@@ -92,7 +92,7 @@ shuffle = (a) ->
           [a[i], a[j]] = [a[j], a[i]]
       return a
 
-start_game = (game, order) ->
+start_game = (game, order, options) ->
     game.state = GAME_PROPOSE
 
     #Temporary roles (no options yet)
@@ -109,6 +109,12 @@ start_game = (game, order) ->
         name    : "Morgana"
         isEvil  : true
     cur_evil = 2
+
+    if options['mordred'] && game.players.length >= 7
+        game.roles.push
+            name    : "Mordred"
+            isEvil  : true
+        cur_evil += 1
 
     #Fill evil
     num_evil = Math.ceil(game.players.length / 3)
@@ -141,9 +147,11 @@ start_game = (game, order) ->
     #Give info
     for p in game.players
         switch p.role
-            when "Merlin", "Assassin", "Minion", "Morgana"
+            when "Merlin", "Assassin", "Minion", "Morgana", "Mordred", "Oberon"
                 for o in game.players
                     if o.isEvil
+                        if p.role == "Merlin" && o.role == "Mordred"
+                            continue
                         p.info.push
                             otherPlayer : o.name
                             information : "evil"
@@ -255,11 +263,12 @@ io.on 'connection', (socket) ->
             return if game_id == null
             Game.findById game_id, (err, game) ->
                 order = data['order']
+                options = data['options']
 
                 #Sanity check
                 return if Object.keys(order).length + 1 != game.players.length
 
-                start_game(game, order)
+                start_game(game, order, options)
 
                 game.save()
                 send_game_info(game)

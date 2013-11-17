@@ -66,6 +66,8 @@ jQuery ->
         if game.state == GAME_LOBBY
             $("#pregame").show()
             $("#gameinfo").empty()
+            $("#btn_start_game").hide()
+            $("#gameoptions").hide()
             for p in game.players
                 ready = if p.ready then '\u2714' else '\u2715'
                 li = $('<li>')
@@ -97,6 +99,8 @@ jQuery ->
             $("#pregame").show()
             $("#btn_ready").hide()
             $("#btn_leavelobby").hide()
+            $("#btn_start_game").hide()
+            $("#gameoptions").hide()
 
             #Set url so refreshing goes right back to the game
             game_url = 'http://' + window.location.hostname + "/game"
@@ -123,6 +127,7 @@ jQuery ->
                 if game.me.id == p.id && i == 0
                     ishost = true
                     $("#btn_start_game").show()
+                    $("#gameoptions").show()
                     $("#gameinfo").sortable
                         items : "li:not(:first)"
 
@@ -321,8 +326,11 @@ jQuery ->
             input = $("#" + p + " input")[0]
             player_id = $(input).attr("value")
             sorted[player_id] = i + 1
+
+        options = {}
+        options['mordred'] = $("#opt_mordred").is(":checked")
         
-        socket.emit('startgame', {order: sorted})
+        socket.emit('startgame', {order: sorted, options: options})
 
     $("#btn_showinfo").on 'click', () ->
         if $("#hiddeninfo").is(":visible")
