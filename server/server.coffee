@@ -58,7 +58,7 @@ send404 = (res) ->
 server.listen PORT
 
 io = io.listen server
-io.set('transports', ['websocket'])
+io.set('transports', ['websocket', 'htmlfile', 'xhr-polling', 'jsonp-polling'])
 
 if DEBUG
     io.set('log level', 3)
