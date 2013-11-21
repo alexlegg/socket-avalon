@@ -310,6 +310,9 @@ jQuery ->
         socket.emit 'newgame'
 
     $("#btn_reconnect").on 'click', () ->
+        game_url = 'http://' + window.location.hostname + "/game"
+        if window.location.href != game_url
+            window.history.pushState({}, "", game_url)
         socket.emit 'reconnecttogame'
 
     $("#btn_ready").on 'click', () ->

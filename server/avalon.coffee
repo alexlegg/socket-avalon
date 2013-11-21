@@ -15,7 +15,7 @@ send_game_list = () ->
                 num_players : g.players.length
         io.sockets.in('lobby').emit('gamelist', data)
 
-send_game_info = (game) ->
+send_game_info = (game, to = undefined) ->
     data =
         state           : game.state
         id              : game.id
@@ -29,7 +29,8 @@ send_game_info = (game) ->
     players = []
     socks = []
     for p in game.players
-        socks.push(io.sockets.socket(p.socket))
+        if to == undefined || p.id.equals(to)
+            socks.push(io.sockets.socket(p.socket))
         players.push
             id          : p.id
             name        : p.name
@@ -240,7 +241,7 @@ io.on 'connection', (socket) ->
                         if p.id.equals(player_id)
                             p.socket = socket.id
                     game.save (err, game) ->
-                        send_game_info(game)
+                        send_game_info(game, player_id)
 
     socket.on 'ready', () ->
         socket.get 'game', (err, game_id) ->
