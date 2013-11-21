@@ -339,6 +339,15 @@ jQuery ->
             $("#btn_showinfo").text("Hide Hidden Info")
         $("#hiddeninfo").toggle()
 
+    $(".options-list li").on 'click', (e) ->
+        e.preventDefault()
+        chk = $(this).find("input").first()
+        if chk
+            chk.prop('checked', !chk.prop('checked'))
+
+    $(".options-list input").on 'click', (e) ->
+        e.stopPropagation()
+
     $("#form-select-mission").on 'submit', (e) ->
         e.preventDefault()
         mission = []
