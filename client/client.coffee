@@ -184,6 +184,12 @@ jQuery ->
                     .removeClass("evil")
                     .text("Mission is underway...")
 
+            if game.state == GAME_ASSASSIN
+                $("#missionmessage")
+                    .removeClass("good")
+                    .removeClass("evil")
+                    .text("The Assassin can now try to kill Merlin.")
+
             #Draw the list of players
             me = game.me
             $("#players").empty()
@@ -225,11 +231,16 @@ jQuery ->
                                 icons.append(voteicon)
 
                 #Make players selectable for the leader (to propose quest)
-                if game.state == GAME_PROPOSE && game.currentLeader == me.id
-                    mission = game.missions[game.currentMission]
-                    window.mission_max = mission.numReq
+                if game.currentLeader == me.id
+                    mission_max = 0
+                    if game.state == GAME_PROPOSE
+                        mission = game.missions[game.currentMission]
+                        mission_max = mission.numReq
+                    else if game.state == GAME_ASSASSIN
+                        mission_max = 1
+                    window.mission_max = mission_max
                     li.on 'click', (e) ->
-                        select_for_mission(mission.numReq, $(e.target))
+                        select_for_mission(mission_max, $(e.target))
                     input = $("<input>").attr
                         type    : 'hidden'
                         name    : p.id
@@ -246,6 +257,12 @@ jQuery ->
             else
                 $("#btn_select_mission").hide()
                 $("#leaderinfo").hide()
+
+            #Make assassination button visible to assassin
+            if game.state == GAME_ASSASSIN && game.currentLeader == me.id
+                $("#btn_assassinate").show()
+            else
+                $("#btn_assassinate").hide()
 
             #Make voting panel visible during vote phase
             if game.state == GAME_VOTE
@@ -361,13 +378,20 @@ jQuery ->
                 mission.push input.attr('name')
                 sel.push $(this)
 
+
         if mission.length == window.mission_max
+            assassinate = $("#btn_assassinate").is(":visible")
             $("#btn_select_mission").hide()
+            $("#btn_assassinate").hide()
             for s in sel
                 s.removeClass('active')
                 s.addClass('success')
-            socket.emit('propose_mission', mission)
             $("#leaderinfo").html("You are the leader, select players from the list then press this button.")
+
+            if assassinate
+                socket.emit('assassinate', mission[0])
+            else
+                socket.emit('propose_mission', mission)
         else
             $("#leaderinfo").html("You must select only <b>" + window.mission_max + "</b> players for the quest!")
 
@@ -400,7 +424,8 @@ jQuery ->
         socket.emit 'leavegame'
 
 select_for_mission = (mission_max, li) ->
-    if $("#btn_select_mission").is(":visible")
+    console.log "Test"
+    if $("#btn_select_mission").is(":visible") || $("#btn_assassinate").is(":visible")
 
         #Get how many already selected
         mission_count = 0
