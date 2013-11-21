@@ -93,7 +93,19 @@ jQuery ->
                     lastmission = m
                     $("#mission" + i).addClass("good")
 
-            $("#missionmessage").append("<br />Game Over");
+            if game.evilWon
+                $("#missionmessage")
+                    .removeClass("good")
+                    .addClass("evil")
+                    .text("Game Over. The Minions of Mordred win!")
+            else
+                $("#missionmessage")
+                    .removeClass("evil")
+                    .addClass("good")
+                    .text("Game Over. The Servants of Arthur win!")
+
+            if game.assassinated != undefined
+                $("#missionmessage").append("<br />" + game.assassinated + " was assassinated.")
 
         else if game.state == GAME_PREGAME
             $("#pregame").show()
@@ -378,7 +390,6 @@ jQuery ->
                 mission.push input.attr('name')
                 sel.push $(this)
 
-
         if mission.length == window.mission_max
             assassinate = $("#btn_assassinate").is(":visible")
             $("#btn_select_mission").hide()
@@ -424,14 +435,19 @@ jQuery ->
         socket.emit 'leavegame'
 
 select_for_mission = (mission_max, li) ->
-    console.log "Test"
-    if $("#btn_select_mission").is(":visible") || $("#btn_assassinate").is(":visible")
+    proposing = $("#btn_select_mission").is(":visible")
+    assassinating = $("#btn_assassinate").is(":visible")
+    if proposing || assassinating
 
         #Get how many already selected
         mission_count = 0
         $("#players li").each () ->
             input = $($(this).children(":input")[0])
-            mission_count += 1 if input.val() == '1'
+            if assassinating
+                $(this).removeClass("active")
+                $(this).attr(value: 1)
+            else
+                mission_count += 1 if input.val() == '1'
 
         #Toggle players if it won't exceed mission maximum
         input = $(li.children(":input")[0])

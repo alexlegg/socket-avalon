@@ -28,9 +28,11 @@ send_game_info = (game, to = undefined) ->
     #Split out socket ids while we're at it, no need to send them
     players = []
     socks = []
-    for p in game.players
+    for p, i in game.players
         if to == undefined || p.id.equals(to)
-            socks.push(io.sockets.socket(p.socket))
+            socks.push
+                socket  : io.sockets.socket(p.socket)
+                player  : i
         players.push
             id          : p.id
             name        : p.name
@@ -61,13 +63,21 @@ send_game_info = (game, to = undefined) ->
 
     data.missions = missions
 
+    if game.state == GAME_FINISHED
+        data.evilWon = game.evilWon
+        data.assassinated = undefined
+        for p in game.players
+            if p.id.equals(game.assassinated)
+                data.assassinated = p.name
+
     #Add in secret info specific to player as we go
-    for s, i in socks
+    for s in socks
+        i = s.player
         data.players[i].role = game.players[i].role
         data.players[i].isEvil = game.players[i].isEvil
         data.players[i].info = game.players[i].info
         data.me = data.players[i]
-        s.emit('gameinfo', data)
+        s.socket.emit('gameinfo', data)
         data.players[i].role = undefined
         data.players[i].isEvil = undefined
         data.players[i].info = []
@@ -373,6 +383,28 @@ io.on 'connection', (socket) ->
                         send_game_info(game)
                     else
                         game.save()
+
+    socket.on 'assassinate', (t) ->
+        socket.get 'game', (err, game_id) ->
+            return if game_id == null
+            Game.findById game_id, (err, game) ->
+                return if game.state != GAME_ASSASSIN
+
+                for p in game.players
+                    if p.id.equals(t)
+                        target = p
+                        break
+
+                return if target == null
+                game.state = GAME_FINISHED
+                game.assassinated = target.id
+                if target.role == "Merlin"
+                    game.evilWon = true
+                else
+                    game.evilWon = false
+
+                game.save()
+                send_game_info(game)
 
     socket.on 'leavegame', () ->
         socket.join('lobby')

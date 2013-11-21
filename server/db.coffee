@@ -73,6 +73,8 @@ gameSchema = new mongoose.Schema
     ]
     currentMission  : Number
     currentLeader   : ObjectId
+    evilWon         : Boolean
+    assassinated    : ObjectId
 
 gameSchema.methods.name = () ->
     names = @players.map (p) -> p.name
@@ -134,6 +136,7 @@ gameSchema.methods.check_for_game_end = () ->
                 this.currentLeader = p.id
     else if fail == 3
         this.state = GAME_FINISHED
+        this.evilWon = true
     else
         this.currentMission += 1
         this.state = GAME_PROPOSE
