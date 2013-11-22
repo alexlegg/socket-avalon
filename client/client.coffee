@@ -185,6 +185,12 @@ jQuery ->
                         $("#missionmessage")
                             .addClass("evil")
                             .text("Mission failed! It was probably Dan.")
+
+                        if game.options.showfails
+                            if lastmission.numfails == 1
+                                $("#missionmessage").append("<br />There was only 1 fail.")
+                            else
+                                $("#missionmessage").append("<br />There were " + lastmission.numfails + " fails.")
                     else
                         $("#missionmessage")
                             .addClass("good")
@@ -361,6 +367,7 @@ jQuery ->
 
         options = {}
         options['mordred'] = $("#opt_mordred").is(":checked")
+        options['showfails'] = $("#opt_showfails").is(":checked")
         
         socket.emit('startgame', {order: sorted, options: options})
 

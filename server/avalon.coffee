@@ -18,6 +18,7 @@ send_game_list = () ->
 send_game_info = (game, to = undefined) ->
     data =
         state           : game.state
+        options         : game.gameOptions
         id              : game.id
         roles           : game.roles
         currentLeader   : game.currentLeader
@@ -58,7 +59,10 @@ send_game_info = (game, to = undefined) ->
     #Hide individual quest cards
     missions = []
     for m in game.missions
-        dm = {numReq:m.numReq, failsReq: m.failsReq, status: m.status}
+        numfails = 0
+        for p in m.players
+            if !p.success then numfails += 1
+        dm = {numReq:m.numReq, failsReq: m.failsReq, status: m.status, numfails: numfails}
         missions.push dm
 
     data.missions = missions
@@ -103,10 +107,9 @@ shuffle = (a) ->
           [a[i], a[j]] = [a[j], a[i]]
       return a
 
-start_game = (game, order, options) ->
+start_game = (game, order) ->
     game.state = GAME_PROPOSE
 
-    #Temporary roles (no options yet)
     game.roles.push
         name    : "Merlin"
         isEvil  : false
@@ -121,7 +124,7 @@ start_game = (game, order, options) ->
         isEvil  : true
     cur_evil = 2
 
-    if options['mordred'] && game.players.length >= 7
+    if game.gameOptions.mordred && game.players.length >= 7
         game.roles.push
             name    : "Mordred"
             isEvil  : true
@@ -274,12 +277,13 @@ io.on 'connection', (socket) ->
             return if game_id == null
             Game.findById game_id, (err, game) ->
                 order = data['order']
-                options = data['options']
+                game.gameOptions.mordred = data['options']['mordred']
+                game.gameOptions.showfails = data['options']['showfails']
 
                 #Sanity check
                 return if Object.keys(order).length + 1 != game.players.length
 
-                start_game(game, order, options)
+                start_game(game, order)
 
                 game.save()
                 send_game_info(game)

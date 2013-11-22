@@ -37,6 +37,11 @@ playerSchema.methods.check_password = (password, cb) ->
 
 gameSchema = new mongoose.Schema
     state       : {type: Number, default: GAME_LOBBY}
+    gameOptions : {
+        mordred     : Boolean
+        oberon      : Boolean
+        showfails   : Boolean
+    }
     roles       : [
         name    : String
         isEvil  : Boolean
