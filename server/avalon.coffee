@@ -124,14 +124,21 @@ start_game = (game, order) ->
         isEvil  : true
     cur_evil = 2
 
-    if game.gameOptions.mordred && game.players.length >= 7
+    num_evil = Math.ceil(game.players.length / 3)
+
+    if game.gameOptions.mordred && cur_evil < num_evil
         game.roles.push
             name    : "Mordred"
             isEvil  : true
         cur_evil += 1
 
+    if game.gameOptions.oberon && cur_evil < num_evil
+        game.roles.push
+            name    : "Oberon"
+            isEvil  : true
+        cur_evil += 1
+
     #Fill evil
-    num_evil = Math.ceil(game.players.length / 3)
     while (cur_evil < num_evil)
         game.roles.push
             name : "Minion"
@@ -161,10 +168,12 @@ start_game = (game, order) ->
     #Give info
     for p in game.players
         switch p.role
-            when "Merlin", "Assassin", "Minion", "Morgana", "Mordred", "Oberon"
+            when "Merlin", "Assassin", "Minion", "Morgana", "Mordred"
                 for o in game.players
                     if o.isEvil
                         if p.role == "Merlin" && o.role == "Mordred"
+                            continue
+                        if p.role != "Merlin" && o.role == "Oberon"
                             continue
                         p.info.push
                             otherPlayer : o.name
@@ -277,7 +286,9 @@ io.on 'connection', (socket) ->
             return if game_id == null
             Game.findById game_id, (err, game) ->
                 order = data['order']
+                console.log data['options']
                 game.gameOptions.mordred = data['options']['mordred']
+                game.gameOptions.oberon = data['options']['oberon']
                 game.gameOptions.showfails = data['options']['showfails']
 
                 #Sanity check
