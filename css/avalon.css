@@ -7,6 +7,9 @@ a {
 .container {
     max-width: 330px;
 }
+#signin {
+    display: none;
+}
 #lobby {
     display: none;
 }
@@ -26,6 +29,9 @@ a {
     display: none;
 }
 #btn_start_game {
+    display: none;
+}
+#btn_ready {
     display: none;
 }
 #waitforhost {

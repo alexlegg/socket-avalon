@@ -37,7 +37,6 @@ send_game_info = (game, to = undefined) ->
         players.push
             id          : p.id
             name        : p.name
-            ready       : p.ready
             order       : p.order
 
     data.players = players
@@ -91,15 +90,19 @@ leave_game = (player_id, game_id) ->
         return if not game
         for p in game.players
             if p.id.equals(player_id)
-                index = game.players.indexOf(p)
-                game.players.splice(index, 1)
+                if game.state == GAME_LOBBY || game.state == GAME_PREGAME
+                    index = game.players.indexOf(p)
+                    game.players.splice(index, 1)
+                else
+                    p.left = true
+                    p.socket = undefined
                 break
 
         game.save (err, game) ->
             if game.players.length == 0
                 game.remove()
-            send_game_list()
             send_game_info(game)
+            send_game_list()
 
 shuffle = (a) ->
       for i in [a.length-1..1]
@@ -206,18 +209,36 @@ io.on 'connection', (socket) ->
 
     socket.on 'login_cookie', (player_id) ->
         Player.findById player_id, (err, player) ->
-            return if not player
-            socket.join('lobby')
+            if not player
+                socket.emit('bad_login')
+                return
+
             player.socket = socket.id
             player.save()
             socket.set('player_id', player._id)
-            send_game_list()
             Game.findById player.currentGame, (err, game) ->
-                return if not game
-                if game.state == GAME_LOBBY
-                    leave_game(player.id, game.id)
-                else if game.state != GAME_FINISHED
-                    socket.emit('currentgame', game._id)
+                if not game
+                    socket.join('lobby')
+                    send_game_list()
+                    return
+
+                #Reconnect to game
+                socket.set('game', game._id)
+                for p in game.players
+                    if p.id.equals(player_id)
+                        if p.left
+                            socket.emit('previous_game', game._id)
+                            socket.join('lobby')
+                            send_game_list()
+                        else
+                            p.socket = socket.id
+                            game.save (err, game) ->
+                                send_game_info(game, player_id)
+                        return
+
+                #Not in your current game
+                socket.join('lobby')
+                send_game_list()
 
     socket.on 'newgame', (game) ->
         socket.get 'player_id', (err, player_id) ->
@@ -239,10 +260,12 @@ io.on 'connection', (socket) ->
             Player.findById player_id, (err, player) ->
                 return if not player
                 if player.currentGame
+                    player.currentGame = undefined
                     leave_game(player_id, player.currentGame)
                 Game.findById game_id, (err, game) ->
                     return if not game
                     game.add_player player
+                    #TODO check if player was actually added
                     game.save (err, game) ->
                         socket.leave('lobby')
                         socket.set('game', game._id)
@@ -257,11 +280,13 @@ io.on 'connection', (socket) ->
             Player.findById player_id, (err, player) ->
                 return if not player
                 Game.findById player.currentGame, (err, game) ->
+                    return if not game
                     socket.leave('lobby')
                     socket.set('game', game._id)
                     for p in game.players
                         if p.id.equals(player_id)
                             p.socket = socket.id
+                            p.left = false
                     game.save (err, game) ->
                         send_game_info(game, player_id)
 
@@ -269,14 +294,9 @@ io.on 'connection', (socket) ->
         socket.get 'game', (err, game_id) ->
             return if game_id == null
             Game.findById game_id, (err, game) ->
-                all_ready = true
-                for p in game.players
-                    if p.socket == socket.id
-                        p.ready = !p.ready
-                    all_ready = false if !p.ready
-
-                if game.players.length >= 5 && all_ready
-                    game.state = GAME_PREGAME
+                if game.players[0].socket == socket.id
+                    if game.players.length >= 5
+                        game.state = GAME_PREGAME
 
                 game.save()
                 send_game_info(game)
@@ -286,7 +306,6 @@ io.on 'connection', (socket) ->
             return if game_id == null
             Game.findById game_id, (err, game) ->
                 order = data['order']
-                console.log data['options']
                 game.gameOptions.mordred = data['options']['mordred']
                 game.gameOptions.oberon = data['options']['oberon']
                 game.gameOptions.showfails = data['options']['showfails']
@@ -429,15 +448,8 @@ io.on 'connection', (socket) ->
                 return if not player_id
                 Game.findById game_id, (err, game) ->
                     return if not game
-                    if game.state == GAME_LOBBY
-                        leave_game(player_id, game_id)
+                    leave_game(player_id, game_id)
   
     socket.on 'disconnect', () ->
-        socket.get 'game', (err, game_id) ->
-            return if not game_id
-            socket.get 'player_id', (err, player_id) ->
-                return if not player_id
-                Game.findById game_id, (err, game) ->
-                    return if not game
-                    if game.state == GAME_LOBBY
-                        leave_game(player_id, game_id)
+        #Do we need to do something here?
+        return true

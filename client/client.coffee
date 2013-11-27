@@ -6,18 +6,10 @@ jQuery ->
         $("#disconnected").hide()
 
         if $.cookie('playername') && $.cookie('player_id')
-            #If /game url then just reconnect
-            game_url = 'http://' + window.location.hostname + "/game"
-            if window.location.href == game_url
-                id = $.cookie('player_id')
-                socket.emit('login_cookie', id)
-                $("#btn_returning").hide()
-            else
-                #Otherwise give option
-                name = $.cookie('playername')
-                $("#btn_returning").text("I am " + name)
-                $("#btn_returning").show()
+            id = $.cookie('player_id')
+            socket.emit('login_cookie', id)
         else
+            $("#signin").show()
             $("#btn_returning").hide()
 
     socket.on 'disconnect', () ->
@@ -38,6 +30,15 @@ jQuery ->
     socket.on 'player_id', (player_id) ->
         $.cookie('player_id', player_id, {expires: 365})
 
+    socket.on 'previous_game', () ->
+        $("#btn_reconnect").show()
+
+    socket.on 'bad_login', () ->
+        $("#signin").show()
+        $("#btn_returning").hide()
+        $.removeCookie('playername')
+        $.removeCookie('player_id')
+
     socket.on 'gamelist', (games) ->
         $("#signin").hide()
         $("#lobby").show()
@@ -53,13 +54,6 @@ jQuery ->
 
                 $("#gamelist").append(join_btn)
 
-    socket.on 'currentgame', (game) ->
-        game_url = 'http://' + window.location.hostname + "/game"
-        if window.location.href != game_url
-            $("#btn_reconnect").show()
-        else
-            socket.emit 'reconnecttogame'
-
     socket.on 'gameinfo', (game) ->
         $("#lobby").hide()
 
@@ -68,13 +62,21 @@ jQuery ->
             $("#gameinfo").empty()
             $("#btn_start_game").hide()
             $("#gameoptions").hide()
-            for p in game.players
-                ready = if p.ready then '\u2714' else '\u2715'
+
+            ishost = false
+            for p, i in game.players
+                if game.me.id == p.id && i == 0
+                    ishost = true
+
                 li = $('<li>')
                     .addClass("list-group-item")
                     .text(p.name)
-                    .append($('<span>').addClass("pull-right").text(ready))
                 $("#gameinfo").append li
+
+            if ishost
+                $("#btn_ready").show()
+            else
+                $("#btn_ready").hide()
 
             window.have_game_info = false
 
@@ -113,11 +115,6 @@ jQuery ->
             $("#btn_leavelobby").hide()
             $("#btn_start_game").hide()
             $("#gameoptions").hide()
-
-            #Set url so refreshing goes right back to the game
-            game_url = 'http://' + window.location.hostname + "/game"
-            if window.location.href != game_url
-                window.history.pushState({}, "", game_url)
 
             if window.have_game_info == true
                 return
@@ -345,17 +342,10 @@ jQuery ->
         socket.emit 'newgame'
 
     $("#btn_reconnect").on 'click', () ->
-        game_url = 'http://' + window.location.hostname + "/game"
-        if window.location.href != game_url
-            window.history.pushState({}, "", game_url)
         socket.emit 'reconnecttogame'
 
     $("#btn_ready").on 'click', () ->
-        if $("#btn_ready").text()  == "I am Ready"
-            $("#btn_ready").text("I am not Ready")
-        else
-            $("#btn_ready").text("I am Ready")
-        socket.emit 'ready'
+        socket.emit('ready')
 
     $("#btn_start_game").on 'click', () ->
         players = $("#gameinfo").sortable("toArray")
@@ -432,11 +422,12 @@ jQuery ->
         $("#quest .btn").each () ->
             $(this).removeClass("active")
         $("#quest").hide()
-        #TODO: prevent submitting without selecting either option
         socket.emit('quest', quest_card)
 
     $("#btn_quit").on 'click', (e) ->
-        window.location.href = 'http://' + window.location.hostname
+        $("#game").hide()
+        $("#btn_reconnect").show()
+        socket.emit 'leavegame'
 
     $("#btn_leavelobby").on 'click', (e) ->
         $("#pregame").hide()

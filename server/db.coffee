@@ -50,10 +50,10 @@ gameSchema = new mongoose.Schema
         id      : ObjectId
         name    : String
         socket  : String
-        ready   : Boolean
         order   : Number
         role    : String
         isEvil  : Boolean
+        left    : {type: Boolean, default: false}
         info    : [
             otherPlayer : String
             information : String
@@ -86,14 +86,18 @@ gameSchema.methods.name = () ->
     return names.join(', ')
 
 gameSchema.methods.add_player = (p) ->
+    for gp in this.players
+        if gp.name == p.name
+            return false
+
     this.players.push
         id  : p._id
         name : p.name
         socket : p.socket
-        ready : false
         role : undefined
         isEvil : undefined
         info : []
+    return true
 
 gameSchema.methods.get_player = (id) ->
     for p in this.players
