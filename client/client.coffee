@@ -7,7 +7,7 @@ jQuery ->
 
         if $.cookie('playername') && $.cookie('player_id')
             id = $.cookie('player_id')
-            socket.emit('login_cookie', id)
+            #socket.emit('login_cookie', id)
         else
             $("#signin").show()
             $("#btn_returning").hide()
@@ -81,6 +81,7 @@ jQuery ->
             window.have_game_info = false
 
         else if game.state == GAME_FINISHED
+            $("#game").show()
 
             #Draw mission info
             lastmission = undefined
@@ -406,7 +407,7 @@ jQuery ->
 
     $("#btn_submitvote").on 'click', (e) ->
         radio = $("input[name=vote]:checked").val()
-        return if radio != "approve" && radio != "deny"
+        return if radio != "approve" && radio != "reject"
         vote = (radio == "approve")
         $("input[name=vote]:checked").prop('checked', false)
         $("#vote .btn").each () ->

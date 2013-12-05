@@ -119,7 +119,7 @@ li.success {
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#ffe5e5e5', GradientType=0);
 }
 
-.btn-deny {
+.btn-reject {
     background-color: #45484d;
     color: #ffffff;
     background-image: -webkit-gradient(linear, left 0%, left 100%, from(#45484d), to(#000000));

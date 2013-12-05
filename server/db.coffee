@@ -24,16 +24,37 @@ playerSchema = new mongoose.Schema
     socket      : String
     currentGame : ObjectId
 
+#playerSchema.methods.set_password = (password, cb) ->
+#    bcrypt.hash password, 8, (err, hash) ->
+#        this.password = hash
+#        cb()
+#
+#playerSchema.methods.check_password = (password, cb) ->
+#    bcrypt.compare password, this.password, (err, res) ->
+#        cb(err, res)
+
+playerSchema.methods.leave_game = (cb) ->
+    player = this
+    Game.findById this.currentGame, (err, game) ->
+        return if err || not game
+
+        for p in game.players
+            if p.id.equals(player._id)
+                if game.state == GAME_LOBBY || game.state == GAME_PREGAME
+                    index = game.players.indexOf(p)
+                    game.players.splice(index, 1)
+                else
+                    p.left = true
+                    p.socket = undefined
+                break
+
+        if game.players.length == 0
+            game.remove()
+
+        game.save (err, game) ->
+            cb(err, game)
+
 Player = mongoose.model('Player', playerSchema)
-
-playerSchema.methods.set_password = (password, cb) ->
-    bcrypt.hash password, 8, (err, hash) ->
-        this.password = hash
-        cb()
-
-playerSchema.methods.check_password = (password, cb) ->
-    bcrypt.compare password, this.password, (err, res) ->
-        cb(err, res)
 
 gameSchema = new mongoose.Schema
     state       : {type: Number, default: GAME_LOBBY}
@@ -47,7 +68,7 @@ gameSchema = new mongoose.Schema
         isEvil  : Boolean
     ]
     players     : [
-        id      : ObjectId
+        id      : {type: ObjectId, ref: 'Player'}
         name    : String
         socket  : String
         order   : Number
@@ -149,6 +170,94 @@ gameSchema.methods.check_for_game_end = () ->
     else
         this.currentMission += 1
         this.state = GAME_PROPOSE
+
+shuffle = (a) ->
+      for i in [a.length-1..1]
+          j = Math.floor Math.random() * (i + 1)
+          [a[i], a[j]] = [a[j], a[i]]
+      return a
+
+gameSchema.methods.start_game = (order) ->
+    this.state = GAME_PROPOSE
+
+    this.roles.push
+        name    : "Merlin"
+        isEvil  : false
+    this.roles.push
+        name    : "Assassin"
+        isEvil  : true
+    this.roles.push
+        name    : "Percival"
+        isEvil  : false
+    this.roles.push
+        name    : "Morgana"
+        isEvil  : true
+    cur_evil = 2
+
+    num_evil = Math.ceil(this.players.length / 3)
+
+    if this.gameOptions.mordred && cur_evil < num_evil
+        this.roles.push
+            name    : "Mordred"
+            isEvil  : true
+        cur_evil += 1
+
+    if this.gameOptions.oberon && cur_evil < num_evil
+        this.roles.push
+            name    : "Oberon"
+            isEvil  : true
+        cur_evil += 1
+
+    #Fill evil
+    while (cur_evil < num_evil)
+        this.roles.push
+            name : "Minion"
+            isEvil : true
+        cur_evil += 1
+
+    #Fill good
+    while (this.roles.length < this.players.length)
+        this.roles.push
+            name : "Servant"
+            isEvil : false
+
+    #Assign roles
+    playerroles = shuffle(this.roles)
+    for p, i in this.players
+        r = playerroles.pop()
+        p.role = r.name
+        p.isEvil = r.isEvil
+        if i == 0
+            p.order = 0
+        else
+            p.order = order[p.id]
+
+    #Sort by order
+    this.players.sort((a, b) -> a.order - b.order)
+
+    #Give info
+    for p in this.players
+        switch p.role
+            when "Merlin", "Assassin", "Minion", "Morgana", "Mordred"
+                for o in this.players
+                    if o.isEvil
+                        if p.role == "Merlin" && o.role == "Mordred"
+                            continue
+                        if p.role != "Merlin" && o.role == "Oberon"
+                            continue
+                        p.info.push
+                            otherPlayer : o.name
+                            information : "evil"
+            when "Percival"
+                for o in this.players
+                    if o.role == "Merlin" || o.role == "Morgana"
+                        p.info.push
+                            otherPlayer : o.name
+                            information : "magic"
+
+    this.setup_missions()
+    leader = Math.floor Math.random() * this.players.length
+    this.currentLeader = this.players[leader].id
 
 Game = mongoose.model('Game', gameSchema)
 
