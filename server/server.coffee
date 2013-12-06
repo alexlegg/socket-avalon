@@ -6,6 +6,7 @@ server = app.listen(PORT)
 app.configure () ->
     app.use express.static(__dirname + '/js')
     app.use express.static(__dirname + '/css')
+    app.use express.static(__dirname + '/img')
 
 app.get '/', (req, res) ->
     res.set('Pragma', 'no-cache')

@@ -206,6 +206,21 @@ io.on 'connection', (socket) ->
                 game.save()
                 send_game_info(game)
 
+    socket.on 'kick', (player_id) ->
+        socket.get 'player', (err, player) ->
+            return if err || not player
+            Game.findById player.currentGame, (err, game) ->
+                return if err || not game
+                if game.players[0].socket == socket.id
+                    Player.findById player_id, (err, target) ->
+                        return if err || not target
+                        target.leave_game (err, game) ->
+                            if game then send_game_info(game)
+                            s = io.sockets.socket(target.socket)
+                            s.emit('kicked')
+                            s.join('lobby')
+                            send_game_list()
+
     socket.on 'startgame', (data) ->
         socket.get 'player', (err, player) ->
             return if err || not player

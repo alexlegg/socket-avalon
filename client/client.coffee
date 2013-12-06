@@ -40,6 +40,9 @@ jQuery ->
         $.removeCookie('player_id')
 
     socket.on 'gamelist', (games) ->
+        return if $("#pregame").is(":visible")
+        return if $("#game").is(":visible")
+
         $("#signin").hide()
         $("#lobby").show()
         $("#gamelist").empty()
@@ -54,6 +57,10 @@ jQuery ->
 
                 $("#gamelist").append(join_btn)
 
+    socket.on 'kicked', () ->
+        $("#pregame").hide()
+        $("#game").hide()
+
     socket.on 'gameinfo', (game) ->
         $("#lobby").hide()
 
@@ -65,12 +72,25 @@ jQuery ->
 
             ishost = false
             for p, i in game.players
-                if game.me.id == p.id && i == 0
-                    ishost = true
-
                 li = $('<li>')
                     .addClass("list-group-item")
                     .text(p.name)
+
+                if ishost then do (p) ->
+                    kick_btn = $("<button>")
+                        .addClass("pull-right")
+                        .addClass("btn")
+                        .addClass("btn-danger")
+                        .addClass("btn-xs")
+                        .text("Kick")
+                        .on 'click', (e) ->
+                            socket.emit('kick', p.id)
+
+                    li.append(kick_btn)
+
+                if game.me.id == p.id && i == 0
+                    ishost = true
+
                 $("#gameinfo").append li
 
             if ishost
@@ -220,14 +240,14 @@ jQuery ->
 
                 #Add an icon to the leader
                 if game.currentLeader == p.id
-                    icons.append('\u2654')
+                    icons.append('<img class="icon" src="crown.png" />')
 
                 if game.state == GAME_VOTE || game.state == GAME_QUEST
                     currVote = game.votes[game.votes.length - 1]
 
-                    #Add an icon to proposed team members
+                    #Highlight proposed team
                     if p.id in currVote.team
-                        icons.append('\u2694')
+                        #icons.append('\u2694')
                         li.addClass("success")
 
                     #Hourglass next to players that haven't voted
@@ -235,7 +255,7 @@ jQuery ->
                     if currVote.votes
                         (voted.push v.id) for v in currVote.votes
                     if not (p.id in voted)
-                        icons.append('\u231b')
+                        icons.append('<img class="icon" src="clock.png" />')
 
                 if game.state == GAME_PROPOSE || game.state == GAME_QUEST
                     currVote = game.votes[game.votes.length - 1]
@@ -243,8 +263,8 @@ jQuery ->
                         #Add an icon for votes
                         for v in currVote.votes
                             if p.id == v.id
-                                voteicon = if v.vote then '\u2714' else '\u2715'
-                                icons.append(voteicon)
+                                voteicon = if v.vote then 'tick' else 'cross'
+                                icons.append('<img class="icon" src="' + voteicon + '.png" />')
 
                 #Make players selectable for the leader (to propose quest)
                 if game.currentLeader == me.id

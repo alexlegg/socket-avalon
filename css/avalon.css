@@ -4,6 +4,11 @@ body {
 a {
     cursor: pointer;
 }
+.icon {
+    width: 12px;
+    margin-right: 2px;
+    margin-left: 2px;
+}
 .container {
     max-width: 330px;
 }

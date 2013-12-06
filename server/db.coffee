@@ -133,6 +133,8 @@ mission_reqs =
     8 : [3, 4, 4, 5, 5]
     9 : [3, 4, 4, 5, 5]
     10 : [3, 4, 4, 5, 5]
+    11 : [4, 5, 5, 6, 6]
+    12 : [4, 5, 5, 6, 6]
 
 gameSchema.methods.setup_missions = () ->
     np = this.players.length
