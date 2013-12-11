@@ -31,6 +31,7 @@ send_game_info = (game, to = undefined) ->
         id              : game.id
         roles           : game.roles
         currentLeader   : game.currentLeader
+        finalLeader     : game.final_leader()
         currentMission  : game.currentMission
         missions        : game.missions
 

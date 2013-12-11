@@ -238,6 +238,10 @@ jQuery ->
                 if game.currentLeader == p.id
                     icons.append('<img class="icon" src="crown.png" />')
 
+                #Add an icon to the final leader
+                if game.finalLeader == p.id
+                    icons.append('<img class="icon" src="crown-last.png" />')
+
                 if game.state == GAME_VOTE || game.state == GAME_QUEST
                     currVote = game.votes[game.votes.length - 1]
 
