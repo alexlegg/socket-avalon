@@ -5,12 +5,11 @@ jQuery ->
     socket.on 'connect', (data) ->
         $("#disconnected").hide()
 
-        if $.cookie('playername') && $.cookie('player_id')
+        if $.cookie('player_id')
             id = $.cookie('player_id')
             #socket.emit('login_cookie', id)
         else
             $("#signin").show()
-            $("#btn_returning").hide()
 
     socket.on 'disconnect', () ->
         $("#signin").hide()
@@ -35,15 +34,12 @@ jQuery ->
 
     socket.on 'bad_login', () ->
         $("#signin").show()
-        $("#btn_returning").hide()
-        $.removeCookie('playername')
         $.removeCookie('player_id')
 
     socket.on 'gamelist', (games) ->
         return if $("#pregame").is(":visible")
         return if $("#game").is(":visible")
 
-        $("#signin").hide()
         $("#lobby").show()
         $("#gamelist").empty()
         for g in games
@@ -349,18 +345,15 @@ jQuery ->
     
     $("#form-signin").on 'submit', (e) ->
         if $("#playername").val().length > 0
-            $("#btn_returning").hide()
             socket.emit('login', {name: $("#playername").val()})
-            $.cookie('playername', $("#playername").val(), {expires: 365})
+            $("#signin").hide()
         e.preventDefault()
-
-    $("#btn_returning").on 'click', () ->
-        $("#btn_returning").hide()
-        id = $.cookie('player_id')
-        socket.emit('login_cookie', id)
 
     $("#btn_newgame").on 'click', () ->
         socket.emit 'newgame'
+
+    $("#btn_changename").on 'click', () ->
+        $("#signin").show()
 
     $("#btn_reconnect").on 'click', () ->
         socket.emit 'reconnecttogame'

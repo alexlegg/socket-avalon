@@ -140,14 +140,19 @@ io.on 'connection', (socket) ->
                 send_game_list()
 
     socket.on 'login', (data) ->
-        socket.join('lobby')
-        player = new Player()
-        player.name = data['name']
-        player.socket = socket.id
-        player.save()
-        socket.set('player', player)
-        socket.emit('player_id', player._id)
-        send_game_list()
+        socket.get 'player', (err, player) ->
+            if err || not player
+                player = new Player()
+                player.name = data['name']
+                player.socket = socket.id
+                player.save()
+                socket.set('player', player)
+                socket.emit('player_id', player._id)
+                socket.join('lobby')
+                send_game_list()
+            else
+                player.name = data['name']
+                player.save()
 
     socket.on 'newgame', (game) ->
         socket.get 'player', (err, player) ->
