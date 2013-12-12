@@ -157,6 +157,9 @@ gameSchema.methods.set_next_leader = () ->
             this.currentLeader = p.id
 
 gameSchema.methods.final_leader = () ->
+    if not this.currentLeader
+        return undefined
+
     final = -1
     for p in this.players
         if p.id.equals(this.currentLeader)

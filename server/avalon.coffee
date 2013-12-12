@@ -5,15 +5,6 @@
 Array::sum = () ->
     @reduce (x, y) -> x + y
 
-parseCookies = (headers) ->
-    cookies = {}
-    if headers.cookie
-        for c in headers.cookie.split("; ")
-            s = c.split("=")
-            if s.length == 2
-                cookies[s[0]] = s[1]
-    return cookies
-
 send_game_list = () ->
     Game.find {}, (err, games) ->
         data = []
@@ -100,9 +91,11 @@ send_game_info = (game, to = undefined) ->
 #
 
 io.on 'connection', (socket) ->
-    cookies = parseCookies(socket.handshake.headers)
+    cookies = socket.handshake.headers.cookie
     player_id = cookies['player_id']
-    if player_id
+    if not player_id
+        socket.emit('bad_login')
+    else
         Player.findById player_id, (err, player) ->
             if err || not player
                 socket.emit('bad_login')
@@ -141,8 +134,10 @@ io.on 'connection', (socket) ->
                 send_game_list()
 
     socket.on 'login', (data) ->
+        console.log "login"
         socket.get 'player', (err, player) ->
             if err || not player
+                console.log 'new player'
                 player = new Player()
                 player.name = data['name']
                 player.socket = socket.id

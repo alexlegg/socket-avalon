@@ -1,14 +1,16 @@
 jQuery ->
     #Socket.io stuff
-    socket = io.connect('http://' + IP + ":" + PORT)
+    
+    query = ""
+    if $.cookie('player_id')
+        query = "?player_id=" + $.cookie('player_id')
+
+    socket = io.connect('http://' + IP + ":" + PORT + query)
 
     socket.on 'connect', (data) ->
         $("#disconnected").hide()
 
-        if $.cookie('player_id')
-            id = $.cookie('player_id')
-            #socket.emit('login_cookie', id)
-        else
+        if not $.cookie('player_id')
             $("#signin").show()
 
     socket.on 'disconnect', () ->
@@ -33,6 +35,7 @@ jQuery ->
         $("#btn_reconnect").show()
 
     socket.on 'bad_login', () ->
+        console.log "bad login"
         $("#signin").show()
         $.removeCookie('player_id')
 
@@ -349,6 +352,7 @@ jQuery ->
     
     $("#form-signin").on 'submit', (e) ->
         if $("#playername").val().length > 0
+            console.log "login"
             socket.emit('login', {name: $("#playername").val()})
             $("#signin").hide()
         e.preventDefault()
