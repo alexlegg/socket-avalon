@@ -35,7 +35,6 @@ jQuery ->
         $("#btn_reconnect").show()
 
     socket.on 'bad_login', () ->
-        console.log "bad login"
         $("#signin").show()
         $.removeCookie('player_id')
 

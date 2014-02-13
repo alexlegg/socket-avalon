@@ -69,10 +69,11 @@ send_game_info = (game, to = undefined) ->
 
     if game.state == GAME_FINISHED
         data.evilWon = game.evilWon
-        data.assassinated = undefined
-        for p in game.players
-            if p.id.equals(game.assassinated)
-                data.assassinated = p.name
+        if game.assassinated
+            data.assassinated = undefined
+            for p in game.players
+                if p.id.equals(game.assassinated)
+                    data.assassinated = p.name
 
     #Add in secret info specific to player as we go
     for s in socks
@@ -134,10 +135,8 @@ io.on 'connection', (socket) ->
                 send_game_list()
 
     socket.on 'login', (data) ->
-        console.log "login"
         socket.get 'player', (err, player) ->
             if err || not player
-                console.log 'new player'
                 player = new Player()
                 player.name = data['name']
                 player.socket = socket.id

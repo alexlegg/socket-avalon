@@ -101,6 +101,7 @@ gameSchema = new mongoose.Schema
     currentLeader   : ObjectId
     evilWon         : Boolean
     assassinated    : ObjectId
+    created         : {type: Date, default: Date.now}
 
 gameSchema.methods.name = () ->
     names = @players.map (p) -> p.name

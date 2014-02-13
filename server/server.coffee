@@ -12,8 +12,33 @@ app.get '/', (req, res) ->
     res.set('Pragma', 'no-cache')
     res.sendfile(__dirname + '/html/index.html')
 
-app.get '/nocookie', (req, res) ->
-    res.send('var cookies = document.cookie.split(";"); for (var i = 0; i < cookies.length; i++) eraseCookie(cookies[i].split("=")[0]);')
+app.get '/games', (req, res) ->
+    res.sendfile(__dirname + '/html/games.html')
+
+app.get '/game', (req, res) ->
+    res.sendfile(__dirname + '/html/game.html')
+
+app.get '/api', (req, res) ->
+    return if not req.query['type']
+    switch req.query['type']
+        when "games"
+            Game.find {}, (err, games) ->
+                response = []
+                for g in games
+                    if g.state != GAME_FINISHED
+                        continue
+
+                    response.push
+                        name : g.name()
+                        date : g.created
+                        id   : g._id
+
+                res.send(response)
+        when "game"
+            Game.findById req.query['id'], (err, game) ->
+                res.send(game)
+        else
+            res.send("{blah: 'blah'}")
 
 io = io.listen server
 io.set('transports', ['websocket', 'htmlfile', 'xhr-polling', 'jsonp-polling'])
