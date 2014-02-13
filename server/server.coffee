@@ -18,14 +18,23 @@ app.get '/games', (req, res) ->
 app.get '/game', (req, res) ->
     res.sendfile(__dirname + '/html/game.html')
 
+app.get '/admin', (req, res) ->
+    res.sendfile(__dirname + '/html/admin.html')
+
 app.get '/api', (req, res) ->
     return if not req.query['type']
     switch req.query['type']
         when "games"
+            req_state = req.query['gamestate']
+            if not req_state
+                req_state = GAME_FINISHED
+            else
+                req_state = parseInt(req_state)
+
             Game.find {}, (err, games) ->
                 response = []
                 for g in games
-                    if g.state != GAME_FINISHED
+                    if g.state != req_state
                         continue
 
                     response.push
@@ -37,6 +46,10 @@ app.get '/api', (req, res) ->
         when "game"
             Game.findById req.query['id'], (err, game) ->
                 res.send(game)
+        when "deletegame"
+            Game.findByIdAndRemove req.query['id'], () ->
+                console.log "removed"
+            res.send("{success: true}")
         else
             res.send("{blah: 'blah'}")
 

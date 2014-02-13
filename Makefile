@@ -7,11 +7,17 @@ CLIENT = js/avalon.js
 STATSSRC = client/stats.coffee
 STATS = js/stats.js
 
+ADMINSRC = client/admin.coffee
+ADMIN = js/admin.js
+
 .PHONY: all
-all: $(SERVER) $(CLIENT) $(STATS)
+all: $(SERVER) $(CLIENT) $(STATS) $(ADMIN)
 
 $(STATS): $(STATSSRC)
 	coffee -j $(STATS) -c $(STATSSRC)
+
+$(ADMIN): $(ADMINSRC)
+	coffee -j $(ADMIN) -c $(ADMINSRC)
 
 $(CLIENT): $(CLIENTSRC)
 	coffee -j $(CLIENT) -c $(CLIENTSRC)
