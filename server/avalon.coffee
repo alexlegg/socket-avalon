@@ -22,7 +22,7 @@ send_game_info = (game, to = undefined) ->
         id              : game.id
         roles           : game.roles
         currentLeader   : game.currentLeader
-        finalLeader     : game.final_leader()
+        finalLeader     : game.finalLeader
         currentMission  : game.currentMission
         missions        : game.missions
 
@@ -273,23 +273,24 @@ io.on 'connection', (socket) ->
                 if currVote.votes.length == game.players.length
                     vs = ((if v.vote then 1 else 0) for v in currVote.votes)
                     vs = vs.sum()
-                    if vs > (game.players.length - vs)
+                    vote_passed = vs > (game.players.length - vs)
+                    vote_count = 0
+                    if vote_passed
                         game.state = GAME_QUEST
                     else
                         game.state = GAME_PROPOSE
 
                         #Check for too many failed votes
-                        votecount = 0
                         for v in game.votes
                             if v.mission == game.currentMission
-                                votecount += 1
+                                vote_count += 1
 
-                        if votecount == 5
+                        if vote_count == 5
                             currMission = game.missions[game.currentMission]
                             currMission.status = 1
                             game.check_for_game_end()
 
-                    game.set_next_leader()
+                    game.set_next_leader(vote_passed || vote_count == 5)
                 game.save()
                 send_game_info(game)
 

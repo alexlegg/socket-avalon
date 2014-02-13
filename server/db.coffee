@@ -99,6 +99,7 @@ gameSchema = new mongoose.Schema
     ]
     currentMission  : Number
     currentLeader   : ObjectId
+    finalLeader     : ObjectId
     evilWon         : Boolean
     assassinated    : ObjectId
     created         : {type: Date, default: Date.now}
@@ -147,29 +148,22 @@ gameSchema.methods.setup_missions = () ->
 
     this.currentMission = 0
 
-gameSchema.methods.set_next_leader = () ->
+gameSchema.methods.set_next_leader = (new_mission) ->
     next = -1
     for p in this.players
         if p.id.equals(this.currentLeader)
             next = (p.order + 1) % this.players.length
 
+    final = -1
     for p in this.players
         if p.order == next
             this.currentLeader = p.id
-
-gameSchema.methods.final_leader = () ->
-    if not this.currentLeader
-        return undefined
-
-    final = -1
-    for p in this.players
-        if p.id.equals(this.currentLeader)
             final = (p.order + 4) % this.players.length
 
-    for p in this.players
-        if p.order == final
-            return p.id
-
+    if new_mission
+        for p in this.players
+            if p.order == final
+                this.finalLeader = p.id
 
 gameSchema.methods.check_for_game_end = () ->
     succ = ((if m.status == 2 then 1 else 0) for m in this.missions)
@@ -275,6 +269,11 @@ gameSchema.methods.start_game = (order) ->
     this.setup_missions()
     leader = Math.floor Math.random() * this.players.length
     this.currentLeader = this.players[leader].id
+
+    final = (this.players[leader].order + 4) % this.players.length
+    for p in this.players
+        if p.order == final
+            return this.finalLeader = p.id
 
 Game = mongoose.model('Game', gameSchema)
 

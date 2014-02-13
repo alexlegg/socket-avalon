@@ -36,7 +36,7 @@ jQuery ->
 
     socket.on 'bad_login', () ->
         $("#signin").show()
-        $.removeCookie('player_id')
+        #$.removeCookie('player_id')
 
     socket.on 'gamelist', (games) ->
         return if $("#pregame").is(":visible")
@@ -241,6 +241,7 @@ jQuery ->
                     icons.append('<img class="icon" src="crown.png" />')
 
                 #Add an icon to the final leader
+                console.log(game.finalLeader)
                 if game.finalLeader == p.id
                     icons.append('<img class="icon" src="crown-last.png" />')
 
