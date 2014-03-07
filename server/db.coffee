@@ -102,6 +102,9 @@ gameSchema = new mongoose.Schema
     finalLeader     : ObjectId
     evilWon         : Boolean
     assassinated    : ObjectId
+    reconnect_vote  : [Number]
+    reconnect_user  : String
+    reconnect_sock  : String
     created         : {type: Date, default: Date.now}
 
 gameSchema.methods.name = () ->

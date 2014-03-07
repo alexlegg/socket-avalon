@@ -30,6 +30,7 @@ jQuery ->
 
     socket.on 'player_id', (player_id) ->
         $.cookie('player_id', player_id, {expires: 365})
+        $("#login").hide()
 
     socket.on 'previous_game', () ->
         $("#btn_reconnect").show()
@@ -37,6 +38,29 @@ jQuery ->
     socket.on 'bad_login', () ->
         $("#signin").show()
         #$.removeCookie('player_id')
+        
+    socket.on 'reconnectlist', (games) ->
+        $("#login").show()
+        for g in games
+            do (g) ->
+                join_btn = $('<a>')
+                    .addClass("list-group-item")
+                    .text(g.name)
+                    .append($('<span>').addClass("pull-right").text(g.num_players))
+                    .click () ->
+                        socket.emit 'reconnectuser', { game_id : g.id, player_id : g.player }
+                        $("#reconnectlist").hide()
+                        $("#reconnectmessage").text("Waiting for approval to reconnect")
+                        $("#reconnectmessage").show()
+
+                $("#reconnectlist").append(join_btn)
+            $("#reconnectmessage").text("")
+            $("#reconnectmessage").hide()
+            $("#reconnectlist").show()
+
+    socket.on 'reconnectdenied', () ->
+        $("#reconnectmessage").text("You were rejected")
+
 
     socket.on 'gamelist', (games) ->
         return if $("#pregame").is(":visible")
@@ -180,6 +204,9 @@ jQuery ->
                 else if m.status == 2
                     lastmission = m
                     $("#mission" + i).addClass("good")
+                else
+                    $("#mission" + i).removeClass("good")
+                    $("#mission" + i).removeClass("evil")
 
             #Notify about last mission
             if game.state == GAME_PROPOSE
@@ -211,6 +238,8 @@ jQuery ->
                         $("#missionmessage")
                             .addClass("good")
                             .text("Mission succeeded!")
+                else
+                    $("#missionmessage").text("")
 
             if game.state == GAME_QUEST
                 $("#missionmessage")
@@ -241,7 +270,6 @@ jQuery ->
                     icons.append('<img class="icon" src="crown.png" />')
 
                 #Add an icon to the final leader
-                console.log(game.finalLeader)
                 if game.finalLeader == p.id
                     icons.append('<img class="icon" src="crown-last.png" />')
 
@@ -348,11 +376,20 @@ jQuery ->
                     .append(info)
                 $("#hiddeninfo").append(li)
 
+            #If someone is trying to reconnect show vote
+            if game.reconnect_user && game.reconnect_user != ""
+                if game.reconnect_vote[me.order] == 0
+                    $("#user_reconnecting_name").text(game.reconnect_user)
+                    $("#user_reconnecting").show()
+            else
+                $("#user_reconnecting").hide()
+                $("#user_reconnecting .btn").each () ->
+                    $(this).removeClass("active")
+
     #Regular jquery stuff
     
     $("#form-signin").on 'submit', (e) ->
         if $("#playername").val().length > 0
-            console.log "login"
             socket.emit('login', {name: $("#playername").val()})
             $("#signin").hide()
         e.preventDefault()
@@ -454,6 +491,20 @@ jQuery ->
     $("#btn_leavelobby").on 'click', (e) ->
         $("#pregame").hide()
         socket.emit 'leavegame'
+
+    $("#btn_submitreconnectvote").on 'click', (e) ->
+        radio = $("input[name=reconnectvote]:checked").val()
+        return if radio != "allow" && radio != "deny"
+        rvote = (radio == "allow")
+        $("input[name=reconnectvote]:checked").prop('checked', false)
+        $("#user_reconnecting .btn").each () ->
+            $(this).removeClass("active")
+        $("#user_reconnecting").hide()
+        socket.emit('reconnect_vote', rvote)
+
+    $("btn_noreconnect").on 'click', (e) ->
+        $("login").hide()
+
 
 select_for_mission = (mission_max, li) ->
     proposing = $("#btn_select_mission").is(":visible")

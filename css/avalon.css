@@ -15,6 +15,9 @@ a {
 #signin {
     display: none;
 }
+#login {
+    display: none;
+}
 #lobby {
     display: none;
 }
@@ -44,6 +47,9 @@ a {
     text-align: center;
 }
 #btn_reconnect {
+    display: none;
+}
+#user_reconnecting {
     display: none;
 }
 #leaderinfo {

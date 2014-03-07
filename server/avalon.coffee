@@ -2,6 +2,8 @@
 # Server side game functions
 #
 
+Q = require('q')
+
 Array::sum = () ->
     @reduce (x, y) -> x + y
 
@@ -25,6 +27,8 @@ send_game_info = (game, to = undefined) ->
         finalLeader     : game.finalLeader
         currentMission  : game.currentMission
         missions        : game.missions
+        reconnect_user  : game.reconnect_user
+        reconnect_vote  : game.reconnect_vote
 
     #Overwrite player data (to hide secret info)
     #Split out socket ids while we're at it, no need to send them
@@ -135,19 +139,133 @@ io.on 'connection', (socket) ->
                 send_game_list()
 
     socket.on 'login', (data) ->
+        newuser = (name) ->
+            player = new Player()
+            player.name = name
+            player.socket = socket.id
+            player.save()
+            socket.set('player', player)
+            socket.emit('player_id', player._id)
+            socket.join('lobby')
+            send_game_list()
+
         socket.get 'player', (err, player) ->
-            if err || not player
-                player = new Player()
+            if not (err || not player)
+                #Player is changing their name
                 player.name = data['name']
-                player.socket = socket.id
                 player.save()
-                socket.set('player', player)
-                socket.emit('player_id', player._id)
+                return
+
+            Player.find {'name' : data['name']}, (err, ps) ->
+                if err || not ps
+                    #No player exists with that name so make a new one
+                    newuser data['name']
+                    return
+
+                games = []
+                promises = []
+                players = []
+                for p in ps
+                    if not p.currentGame
+                        continue
+                    promises.push(Game.findById(p.currentGame).exec())
+                    players.push(p)
+
+                Q.all(promises).then (results) ->
+                    games = []
+                    for game, i in results
+                        if game.status <= GAME_PREGAME || game.status >= GAME_FINISHED
+                            continue
+
+                        data =
+                            id      : game._id
+                            name    : game.name()
+                            player  : players[i]._id
+                        games.push(data)
+
+                    if games != []
+                        socket.emit('reconnectlist', games)
+                    else
+                        #No player with that name exists in a game,
+                        #so just make a new one
+                        newuser data['name']
+
+    socket.on 'reconnectuser', (data) ->
+        Player.findById data.player_id, (err, player) ->
+            return if err || not player
+
+            if not player.currentGame.equals(data.game_id)
                 socket.join('lobby')
                 send_game_list()
-            else
-                player.name = data['name']
-                player.save()
+                return
+
+            Game.findById player.currentGame, (err, game) ->
+                if err || not game
+                    socket.join('lobby')
+                    send_game_list()
+                    return
+
+                #Call a reconnection vote
+                #TODO: Tell user to wait if vote ongoing
+                game.reconnect_user = player.name
+                game.reconnect_sock = socket.id
+                game.reconnect_vote = (0 for p in game.players)
+                game.save()
+                send_game_info(game)
+                socket.set('player', player)
+
+    socket.on 'reconnect_vote', (rvote) ->
+        socket.get 'player', (err, player) ->
+            return if err || not player
+            Game.findById player.currentGame, (err, game) ->
+                return if err || not game
+
+                order = -1
+                for p in game.players
+                    if p.id.equals(player._id)
+                        order = p.order
+                return if order == -1
+
+                if rvote
+                    game.reconnect_vote.set(order, 1)
+                    vs = (v for v in game.reconnect_vote)
+                    vs = vs.sum()
+
+                    if vs > (game.players.length / 2)
+                        sock = io.sockets.socket(game.reconnect_sock)
+                        #Save player's socket data
+                        sock.get 'player', (err, player) ->
+                            if player && not err
+                                player.socket = sock.id
+                                player.save()
+                                sock.emit('player_id', player._id)
+
+                                for p in game.players
+                                    if p.id.equals(player._id)
+                                        p.socket = sock.id
+                                        break
+
+                            game.reconnect_user = undefined
+                            game.reconnect_sock = undefined
+                            game.reconnect_vote = (0 for p in game.players)
+
+                            game.save()
+                            send_game_info(game)
+                    else
+                        game.save()
+                        send_game_info(game)
+
+                else
+                    #One denial is enough
+                    sock = io.sockets.socket(game.reconnect_sock)
+                    game.reconnect_user = undefined
+                    game.reconnect_sock = undefined
+                    game.reconnect_vote = (0 for p in game.players)
+
+                    game.save()
+                    send_game_info(game)
+
+                    sock.emit("reconnectdenied")
 
     socket.on 'newgame', (game) ->
         socket.get 'player', (err, player) ->

@@ -32,6 +32,15 @@
             </form>
         </div>
 
+        <div id="login">
+            <h2 style="text-align: center">Avalon</h2>
+            <p style="text-align:center">Are you trying to reconnect to a game?</p>
+            <ul class="list-group" id="reconnectlist"></ul>
+            <br />
+            <p style="text-align: center" id="reconnectmessage"></p>
+            <button class="btn btn-lg btn-danger btn-block" id="btn_noreconnect">No, take me to the lobby</button>
+        </div>
+
         <div id="lobby">
             <h2 style="text-align: center">Avalon</h2>
             <ul class="list-group" id="gamelist"></ul>
@@ -131,6 +140,26 @@
 
             <br />
             <button class="btn btn-lg btn-danger btn-block" id="btn_quit">Quit Game</button>
+
+            <br />
+            <div class="panel panel-default panel-popup" id="user_reconnecting">
+                Someone is reconnecting to the game.<br />
+                They claim to be <span id="user_reconnecting_name"></span>.
+                <br />
+                <br />
+                <div class="btn-group" data-toggle="buttons">
+                    <label class="btn btn-success">
+                        <input type="radio" name="reconnectvote" value="allow"><span class="btnicon"><img class="icon" src="tick-wh.png" /></span> Allow
+                    </label>
+                    <label class="btn btn-danger">
+                        <input type="radio" name="reconnectvote" value="deny">Deny <span class="btnicon"><img class="icon" src="cross-wh.png" /></span>
+                    </label>
+                </div>
+                <br />
+                <br />
+                <button class="btn btn-primary btn-block btn-panel" id="btn_submitreconnectvote">Submit</button>
+                <br />
+            </div>
 
             <br />
         </div>
