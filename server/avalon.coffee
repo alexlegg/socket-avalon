@@ -183,7 +183,8 @@ io.on 'connection', (socket) ->
                             player  : players[i]._id
                         games.push(data)
 
-                    if games != []
+                    console.log games
+                    if games.length != 0
                         socket.emit('reconnectlist', games)
                     else
                         #No player with that name exists in a game,

@@ -40,6 +40,7 @@ jQuery ->
         #$.removeCookie('player_id')
         
     socket.on 'reconnectlist', (games) ->
+        console.log 'reconnectlist'
         $("#login").show()
         for g in games
             do (g) ->
@@ -502,8 +503,8 @@ jQuery ->
         $("#user_reconnecting").hide()
         socket.emit('reconnect_vote', rvote)
 
-    $("btn_noreconnect").on 'click', (e) ->
-        $("login").hide()
+    $("#btn_noreconnect").on 'click', (e) ->
+        $("#login").hide()
 
 
 select_for_mission = (mission_max, li) ->
