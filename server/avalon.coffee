@@ -138,17 +138,17 @@ io.on 'connection', (socket) ->
                 socket.join('lobby')
                 send_game_list()
 
-    socket.on 'login', (data) ->
-        newuser = (name) ->
-            player = new Player()
-            player.name = name
-            player.socket = socket.id
-            player.save()
-            socket.set('player', player)
-            socket.emit('player_id', player._id)
-            socket.join('lobby')
-            send_game_list()
+    newuser = (name) ->
+        player = new Player()
+        player.name = name
+        player.socket = socket.id
+        player.save()
+        socket.set('player', player)
+        socket.emit('player_id', player._id)
+        socket.join('lobby')
+        send_game_list()
 
+    socket.on 'login', (data) ->
         socket.get 'player', (err, player) ->
             if not (err || not player)
                 #Player is changing their name
@@ -174,7 +174,7 @@ io.on 'connection', (socket) ->
                 Q.all(promises).then (results) ->
                     games = []
                     for game, i in results
-                        if game.status <= GAME_PREGAME || game.status >= GAME_FINISHED
+                        if not game || game.status <= GAME_PREGAME || game.status >= GAME_FINISHED
                             continue
 
                         data =
@@ -183,13 +183,13 @@ io.on 'connection', (socket) ->
                             player  : players[i]._id
                         games.push(data)
 
-                    console.log games
                     if games.length != 0
                         socket.emit('reconnectlist', games)
                     else
-                        #No player with that name exists in a game,
-                        #so just make a new one
                         newuser data['name']
+
+    socket.on 'noreconnect', (data) ->
+        newuser data['name']
 
     socket.on 'reconnectuser', (data) ->
         Player.findById data.player_id, (err, player) ->

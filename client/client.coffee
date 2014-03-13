@@ -504,6 +504,7 @@ jQuery ->
         socket.emit('reconnect_vote', rvote)
 
     $("#btn_noreconnect").on 'click', (e) ->
+        socket.emit('noreconnect', {name: $("#playername").val()})
         $("#login").hide()
 
 
