@@ -1,6 +1,52 @@
+/* colour scheme: https://kuler.adobe.com/Locname-Two-color-theme-3579905/edit/?copy=true&base=1&rule=Custom&selected=3&name=Copy%20of%20Locname-Two&mode=rgb&rgbvalues=0.17254901960784313,0.24313725490196078,0.3137254901960784,0.9058823529411765,0.2980392156862745,0.23529411764705882,0.9254901960784314,0.9411764705882353,0.9450980392156862,0.20392156862745098,0.596078431372549,0.8588235294117647,0.1607843137254902,0.5019607843137255,0.7254901960784313&swatchOrder=0,1,2,3,4 */
+
 body {
-    background-color: #eee;
+    background-color: #ECF0F1;
+    color: #2C3E50;
+}
+a {
+    cursor: pointer;
+}
+h4 {
+    margin-top: 0;
+    margin-bottom: 0;
+    text-align: center;
+    font-weight: bold;
 }
 .container {
     max-width: 330px;
+}
+
+.evil {
+    color: #E74C3C !important;
+}
+
+.good {
+    color: #3498DB !important;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.vote-table {
+    display: none;
+}
+
+.icon {
+    width: 12px;
+    margin-right: 2px;
+    margin-left: 2px;
+}
+
+.vote-table td {
+    padding-right: 5px;
+}
+
+.vote_td {
+    width: 18px;
+}
+
+.role {
+    float: right;
 }

@@ -124,6 +124,10 @@ jQuery ->
             window.have_game_info = false
 
         else if game.state == GAME_FINISHED
+            socket.emit 'leavegame'
+            window.location = '/game?id=' + game.id
+
+            ###
             $("#game").show()
 
             #Draw mission info
@@ -152,6 +156,7 @@ jQuery ->
 
             if game.assassinated != undefined
                 $("#missionmessage").append("<br />" + game.assassinated + " was assassinated.")
+            ###
 
         else if game.state == GAME_PREGAME
             $("#pregame").show()
