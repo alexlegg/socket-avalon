@@ -404,12 +404,12 @@ io.on 'connection', (socket) ->
                             if v.mission == game.currentMission
                                 vote_count += 1
 
-                        if vote_count == 5
+                        if vote_count == 6
                             currMission = game.missions[game.currentMission]
                             currMission.status = 1
                             game.check_for_game_end()
 
-                    game.set_next_leader(vote_passed || vote_count == 5)
+                    game.set_next_leader(vote_passed || vote_count == 6)
                 game.save()
                 send_game_info(game)
 
