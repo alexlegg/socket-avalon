@@ -62,6 +62,7 @@ gameSchema = new mongoose.Schema
         mordred     : Boolean
         oberon      : Boolean
         showfails   : Boolean
+        danmode     : Boolean
     }
     roles       : [
         name    : String
@@ -174,10 +175,14 @@ gameSchema.methods.check_for_game_end = () ->
     fail = ((if m.status == 1 then 1 else 0) for m in this.missions)
     fail = fail.sum()
     if succ == 3
-        this.state = GAME_ASSASSIN
+        hasAssassin = false
         for p in this.players
             if p.role == "Assassin"
+                hasAssassin = true
                 this.currentLeader = p.id
+                this.state = GAME_ASSASSIN
+        if not hasAssassin
+            this.state = GAME_FINISHED
     else if fail == 3
         this.state = GAME_FINISHED
         this.evilWon = true
@@ -194,57 +199,80 @@ shuffle = (a) ->
 gameSchema.methods.start_game = (order) ->
     this.state = GAME_PROPOSE
 
-    this.roles.push
-        name    : "Merlin"
-        isEvil  : false
-    this.roles.push
-        name    : "Assassin"
-        isEvil  : true
-    this.roles.push
-        name    : "Percival"
-        isEvil  : false
-    this.roles.push
-        name    : "Morgana"
-        isEvil  : true
-    cur_evil = 2
 
-    num_evil = Math.ceil(this.players.length / 3)
+    if this.gameOptions.danmode
+        for p, i in this.players
+            if p.name == "Dan"
+                p.role = "Servant"
+                p.isEvil = false
 
-    if this.gameOptions.mordred && cur_evil < num_evil
+                this.roles.push
+                    name    : "Servant"
+                    isEvil  : false
+            else
+                p.role = "Minion"
+                p.isEvil = true
+
+                this.roles.push
+                    name    : "Minion"
+                    isEvil  : true
+
+            if i == 0
+                p.order = 0
+            else
+                p.order = order[p.id]
+    else
         this.roles.push
-            name    : "Mordred"
+            name    : "Merlin"
+            isEvil  : false
+        this.roles.push
+            name    : "Assassin"
             isEvil  : true
-        cur_evil += 1
-
-    if this.gameOptions.oberon && cur_evil < num_evil
         this.roles.push
-            name    : "Oberon"
+            name    : "Percival"
+            isEvil  : false
+        this.roles.push
+            name    : "Morgana"
             isEvil  : true
-        cur_evil += 1
+        cur_evil = 2
 
-    #Fill evil
-    while (cur_evil < num_evil)
-        this.roles.push
-            name : "Minion"
-            isEvil : true
-        cur_evil += 1
+        num_evil = Math.ceil(this.players.length / 3)
 
-    #Fill good
-    while (this.roles.length < this.players.length)
-        this.roles.push
-            name : "Servant"
-            isEvil : false
+        if this.gameOptions.mordred && cur_evil < num_evil
+            this.roles.push
+                name    : "Mordred"
+                isEvil  : true
+            cur_evil += 1
 
-    #Assign roles
-    playerroles = shuffle(this.roles)
-    for p, i in this.players
-        r = playerroles.pop()
-        p.role = r.name
-        p.isEvil = r.isEvil
-        if i == 0
-            p.order = 0
-        else
-            p.order = order[p.id]
+        if this.gameOptions.oberon && cur_evil < num_evil
+            this.roles.push
+                name    : "Oberon"
+                isEvil  : true
+            cur_evil += 1
+
+        #Fill evil
+        while (cur_evil < num_evil)
+            this.roles.push
+                name : "Minion"
+                isEvil : true
+            cur_evil += 1
+
+        #Fill good
+        while (this.roles.length < this.players.length)
+            this.roles.push
+                name : "Servant"
+                isEvil : false
+
+        #Assign roles
+        playerroles = shuffle(this.roles)
+        for p, i in this.players
+            r = playerroles.pop()
+            p.role = r.name
+            p.isEvil = r.isEvil
+            if i == 0
+                p.order = 0
+            else
+                p.order = order[p.id]
 
     #Sort by order
     this.players.sort((a, b) -> a.order - b.order)

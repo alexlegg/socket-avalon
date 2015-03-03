@@ -349,6 +349,7 @@ io.on 'connection', (socket) ->
                 game.gameOptions.mordred = data['options']['mordred']
                 game.gameOptions.oberon = data['options']['oberon']
                 game.gameOptions.showfails = data['options']['showfails']
+                game.gameOptions.danmode = data['options']['danmode']
 
                 #Sanity check
                 return if Object.keys(order).length + 1 != game.players.length
