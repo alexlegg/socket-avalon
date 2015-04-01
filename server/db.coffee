@@ -192,9 +192,10 @@ gameSchema.methods.check_for_game_end = () ->
         this.evilWon = true
     else
         this.currentMission += 1
-        if this.gameOptions.ladylake
+        if this.gameOptions.ladylake && this.currentMission >= 2
             this.state = GAME_LADY
-        else this.state = GAME_PROPOSAL
+        else
+            this.state = GAME_PROPOSE
 
 shuffle = (a) ->
       for i in [a.length-1..1]
@@ -310,14 +311,17 @@ gameSchema.methods.start_game = (order) ->
     final = (this.players[leader].order + 4) % this.players.length
     for p in this.players
         if p.order == final
-            return this.finalLeader = p.id
+            this.finalLeader = p.id
 
     if this.gameOptions.ladylake
-        lady = (this.players[leader].order - 1) % this.players.length
+        lady = this.players[leader].order - 1
+        if lady == -1
+            lady = this.players.length - 1
+        
         for p in this.players
             if p.order == lady
-               return this.lady = p.id
-        this.pastLadies = []
+               this.lady = p.id
+        this.pastLadies = [this.lady]
 
 Game = mongoose.model('Game', gameSchema)
 

@@ -28,6 +28,7 @@ send_game_info = (game, to = undefined) ->
         currentMission  : game.currentMission
         missions        : game.missions
         lady            : game.lady
+        pastLadies      : game.pastLadies
         reconnect_user  : game.reconnect_user
         reconnect_vote  : game.reconnect_vote
 
@@ -492,6 +493,12 @@ io.on 'connection', (socket) ->
                 game.pastLadies.push target.id
                 game.state = GAME_PROPOSE
                 game.lady = target.id
+
+                for p in game.players
+                    if p.id.equals(player._id)
+                        p.info.push
+                            otherPlayer: target.name
+                            information: if target.isEvil then "evil" else "good"
 
                 game.save()
                 send_game_info(game)

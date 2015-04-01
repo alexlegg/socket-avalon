@@ -74,7 +74,7 @@ io.set 'authorization', (data, cb) ->
     cb(null, true)
 
 if DEBUG
-    io.set('log level', 3)
+    io.set('log level', 0)
 else
     io.set('log level', 0)
     io.enable('browser client minification')

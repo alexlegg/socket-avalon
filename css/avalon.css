@@ -66,6 +66,10 @@ a {
     display: none;
     margin-bottom: 10px;
 }
+#btn_reveal {
+    display: none;
+    margin-bottom: 10px;
+}
 .panel-popup {
     text-align: center;
 }

@@ -41,7 +41,6 @@ jQuery ->
         #$.removeCookie('player_id')
         
     socket.on 'reconnectlist', (games) ->
-        console.log 'reconnectlist'
         $("#login").show()
         for g in games
             do (g) ->
@@ -290,7 +289,7 @@ jQuery ->
                     icons.append('<img class="icon" src="female.png" />')
 
                 #Add an icon to the players who have been lady of the lake
-                if game.state == GAME_LADY && p.id in pastLadies
+                if game.state == GAME_LADY && p.id in game.pastLadies
                     icons.append('<img class="icon" src="cross.png" />')
 
                 if game.state == GAME_VOTE || game.state == GAME_QUEST
@@ -338,7 +337,7 @@ jQuery ->
                 if game.state == GAME_LADY && game.lady == me.id
                     window.mission_max = 1
                     li.on 'click', (e) ->
-                        select_for_lady($(e.target))
+                        select_for_lady(game.pastLadies, $(e.target))
                     input = $("<input>").attr
                         type    : 'hidden'
                         name    : p.id
@@ -365,6 +364,8 @@ jQuery ->
             #Make reveal button visible to player with the Lady of the Lake
             if game.state == GAME_LADY && game.lady == me.id
                 $("#btn_reveal").show()
+                $("#leaderinfo").html("You are the Lady of the Lake, select a player to reveal.")
+                $("#leaderinfo").show()
             else
                 $("#btn_reveal").hide()
 
@@ -407,6 +408,7 @@ jQuery ->
             for i in me.info
                 info = $("<span>").text(i.information)
                 if i.information == "evil" then info.addClass("evil")
+                if i.information == "good" then info.addClass("good")
                 li = $("<li>")
                     .addClass("list-group-item")
                     .text(i.otherPlayer + " is ")
@@ -500,14 +502,6 @@ jQuery ->
             if assassinate
                 socket.emit('assassinate', mission[0])
             else if reveal
-                target = game.get_player(mission[0])
-                return if target.id in game.pastLadies
-                info = if target.isEvil then "evil" else "good"
-                li = $("<li>")
-                    .addClass("list-group-item")
-                    .text(target.name + " is ")
-                    .append(info)
-                $("#hiddeninfo").append(li)
                 socket.emit('reveal', mission[0])
             else
                 socket.emit('propose_mission', mission)
@@ -569,7 +563,7 @@ select_for_mission = (mission_max, li) ->
             input = $($(this).children(":input")[0])
             if assassinating
                 $(this).removeClass("active")
-                $(this).attr(value: 1)
+                input.attr(value: 0)
             else
                 mission_count += 1 if input.val() == '1'
 
@@ -585,21 +579,20 @@ select_for_mission = (mission_max, li) ->
             else
                 $("#leaderinfo").html("You must select only <b>" + window.mission_max + "</b> players for the quest!")
 
-select_for_lady = (li) ->
+select_for_lady = (pastLadies, li) ->
     revealing = $("#btn_reveal").is(":visible")
     if revealing
-
-        #Get how many already selected
+        #Remove selection from others
         $("#players li").each () ->
             input = $($(this).children(":input")[0])
             $(this).removeClass("active")
-            $(this).attr(value: 1)
-
-        #Toggle players if it won't exceed mission maximum
-        input = $(li.children(":input")[0])
-        if li.hasClass("active")
-            li.removeClass("active")
             input.attr(value: 0)
+
+        #Toggle players if they are valid
+        input = $(li.children(":input")[0])
+        player_id = input.attr("name")
+        if player_id in pastLadies
+            $("#leaderinfo").html("You can't give Lady of the Lake to someone who has had it already")
         else
             li.addClass("active")
             input.attr(value: 1)
