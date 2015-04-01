@@ -25,8 +25,9 @@ jQuery ->
     GAME_PROPOSE    = 2
     GAME_VOTE       = 3
     GAME_QUEST      = 4
-    GAME_ASSASSIN   = 5
-    GAME_FINISHED   = 6
+    GAME_LADY       = 5
+    GAME_ASSASSIN   = 6
+    GAME_FINISHED   = 7
 
     socket.on 'player_id', (player_id) ->
         $.cookie('player_id', player_id, {expires: 365})
@@ -253,6 +254,11 @@ jQuery ->
                     .removeClass("evil")
                     .text("Mission is underway...")
 
+            if game.state == GAME_LADY
+                $("#missionmessage")
+                    .removeClass("good")
+                    .removeClass("evil")
+
             if game.state == GAME_ASSASSIN
                 $("#missionmessage")
                     .removeClass("good")
@@ -278,6 +284,14 @@ jQuery ->
                 #Add an icon to the final leader
                 if game.finalLeader == p.id
                     icons.append('<img class="icon" src="crown-last.png" />')
+
+                #Add an icon to the player with the lady of the lake
+                if game.lady == p.id
+                    icons.append('<img class="icon" src="female.png" />')
+
+                #Add an icon to the players who have been lady of the lake
+                if game.state == GAME_LADY && p.id in pastLadies
+                    icons.append('<img class="icon" src="cross.png" />')
 
                 if game.state == GAME_VOTE || game.state == GAME_QUEST
                     currVote = game.votes[game.votes.length - 1]
@@ -320,6 +334,17 @@ jQuery ->
                         value   : 0
                     li.append(input)
 
+                #Make players selectable for the lady
+                if game.state == GAME_LADY && game.lady == me.id
+                    window.mission_max = 1
+                    li.on 'click', (e) ->
+                        select_for_lady($(e.target))
+                    input = $("<input>").attr
+                        type    : 'hidden'
+                        name    : p.id
+                        value   : 0
+                    li.append(input)
+
                 li.append(icons)
                 $("#players").append(li)
 
@@ -336,6 +361,12 @@ jQuery ->
                 $("#btn_assassinate").show()
             else
                 $("#btn_assassinate").hide()
+
+            #Make reveal button visible to player with the Lady of the Lake
+            if game.state == GAME_LADY && game.lady == me.id
+                $("#btn_reveal").show()
+            else
+                $("#btn_reveal").hide()
 
             #Make voting panel visible during vote phase
             if game.state == GAME_VOTE
@@ -424,6 +455,7 @@ jQuery ->
         options['mordred'] = $("#opt_mordred").is(":checked")
         options['oberon'] = $("#opt_oberon").is(":checked")
         options['showfails'] = $("#opt_showfails").is(":checked")
+        options['ladylake'] = $("#opt_ladylake").is(":checked")
         options['danmode'] = $("#opt_danmode").is(":checked")
         
         socket.emit('startgame', {order: sorted, options: options})
@@ -456,8 +488,10 @@ jQuery ->
 
         if mission.length == window.mission_max
             assassinate = $("#btn_assassinate").is(":visible")
+            reveal = $("#btn_reveal").is(":visible")
             $("#btn_select_mission").hide()
             $("#btn_assassinate").hide()
+            $("#btn_reveal").hide()
             for s in sel
                 s.removeClass('active')
                 s.addClass('success')
@@ -465,6 +499,16 @@ jQuery ->
 
             if assassinate
                 socket.emit('assassinate', mission[0])
+            else if reveal
+                target = game.get_player(mission[0])
+                return if target.id in game.pastLadies
+                info = if target.isEvil then "evil" else "good"
+                li = $("<li>")
+                    .addClass("list-group-item")
+                    .text(target.name + " is ")
+                    .append(info)
+                $("#hiddeninfo").append(li)
+                socket.emit('reveal', mission[0])
             else
                 socket.emit('propose_mission', mission)
         else
@@ -540,3 +584,22 @@ select_for_mission = (mission_max, li) ->
                 input.attr(value: 1)
             else
                 $("#leaderinfo").html("You must select only <b>" + window.mission_max + "</b> players for the quest!")
+
+select_for_lady = (li) ->
+    revealing = $("#btn_reveal").is(":visible")
+    if revealing
+
+        #Get how many already selected
+        $("#players li").each () ->
+            input = $($(this).children(":input")[0])
+            $(this).removeClass("active")
+            $(this).attr(value: 1)
+
+        #Toggle players if it won't exceed mission maximum
+        input = $(li.children(":input")[0])
+        if li.hasClass("active")
+            li.removeClass("active")
+            input.attr(value: 0)
+        else
+            li.addClass("active")
+            input.attr(value: 1)
