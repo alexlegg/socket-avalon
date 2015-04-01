@@ -27,6 +27,7 @@ send_game_info = (game, to = undefined) ->
         finalLeader     : game.finalLeader
         currentMission  : game.currentMission
         missions        : game.missions
+        lady            : game.lady
         reconnect_user  : game.reconnect_user
         reconnect_vote  : game.reconnect_vote
 
@@ -349,6 +350,7 @@ io.on 'connection', (socket) ->
                 game.gameOptions.mordred = data['options']['mordred']
                 game.gameOptions.oberon = data['options']['oberon']
                 game.gameOptions.showfails = data['options']['showfails']
+                game.gameOptions.ladylake = data['options']['ladylake']
                 game.gameOptions.danmode = data['options']['danmode']
 
                 #Sanity check
@@ -473,6 +475,23 @@ io.on 'connection', (socket) ->
                     game.evilWon = true
                 else
                     game.evilWon = false
+
+                game.save()
+                send_game_info(game)
+
+    socket.on 'reveal', (t) ->
+        socket.get 'player', (err, player) ->
+            return if err || not player
+            Game.findById player.currentGame, (err, game) ->
+                return if err || not game
+                return if game.state != GAME_LADY
+
+                target = game.get_player(t)
+                return if not target || target.id in game.pastLadies
+
+                game.pastLadies.push target.id
+                game.state = GAME_PROPOSE
+                game.lady = target.id
 
                 game.save()
                 send_game_info(game)

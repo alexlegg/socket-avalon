@@ -13,8 +13,9 @@ GAME_PREGAME    = 1
 GAME_PROPOSE    = 2
 GAME_VOTE       = 3
 GAME_QUEST      = 4
-GAME_ASSASSIN   = 5
-GAME_FINISHED   = 6
+GAME_LADY       = 5
+GAME_ASSASSIN   = 6
+GAME_FINISHED   = 7
 
 ObjectId = mongoose.Schema.Types.ObjectId
 
@@ -62,21 +63,22 @@ gameSchema = new mongoose.Schema
         mordred     : Boolean
         oberon      : Boolean
         showfails   : Boolean
+        ladylake    : Boolean
         danmode     : Boolean
     }
     roles       : [
         name    : String
         isEvil  : Boolean
     ]
-    players     : [
-        id      : {type: ObjectId, ref: 'Player'}
-        name    : String
-        socket  : String
-        order   : Number
-        role    : String
-        isEvil  : Boolean
-        left    : {type: Boolean, default: false}
-        info    : [
+    players      : [
+        id       : {type: ObjectId, ref: 'Player'}
+        name     : String
+        socket   : String
+        order    : Number
+        role     : String
+        isEvil   : Boolean
+        left     : {type: Boolean, default: false}
+        info     : [
             otherPlayer : String
             information : String
         ]
@@ -101,6 +103,8 @@ gameSchema = new mongoose.Schema
     currentMission  : Number
     currentLeader   : ObjectId
     finalLeader     : ObjectId
+    lady            : ObjectId
+    pastLadies      : [ObjectId]
     evilWon         : Boolean
     assassinated    : ObjectId
     reconnect_vote  : [Number]
@@ -188,7 +192,9 @@ gameSchema.methods.check_for_game_end = () ->
         this.evilWon = true
     else
         this.currentMission += 1
-        this.state = GAME_PROPOSE
+        if this.gameOptions.ladylake
+            this.state = GAME_LADY
+        else this.state = GAME_PROPOSAL
 
 shuffle = (a) ->
       for i in [a.length-1..1]
@@ -305,6 +311,13 @@ gameSchema.methods.start_game = (order) ->
     for p in this.players
         if p.order == final
             return this.finalLeader = p.id
+
+    if this.gameOptions.ladylake
+        lady = (this.players[leader].order - 1) % this.players.length
+        for p in this.players
+            if p.order == lady
+               return this.lady = p.id
+        this.pastLadies = []
 
 Game = mongoose.model('Game', gameSchema)
 
