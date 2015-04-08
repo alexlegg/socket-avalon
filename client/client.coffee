@@ -458,6 +458,7 @@ jQuery ->
         options['oberon'] = $("#opt_oberon").is(":checked")
         options['showfails'] = $("#opt_showfails").is(":checked")
         options['ladylake'] = $("#opt_ladylake").is(":checked")
+        options['ptrc'] = $("#opt_ptrc").is(":checked")
         options['danmode'] = $("#opt_danmode").is(":checked")
         
         socket.emit('startgame', {order: sorted, options: options})

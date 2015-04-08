@@ -64,6 +64,7 @@ gameSchema = new mongoose.Schema
         oberon      : Boolean
         showfails   : Boolean
         ladylake    : Boolean
+        ptrc        : Boolean
         danmode     : Boolean
     }
     roles       : [

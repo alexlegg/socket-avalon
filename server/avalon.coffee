@@ -352,6 +352,7 @@ io.on 'connection', (socket) ->
                 game.gameOptions.oberon = data['options']['oberon']
                 game.gameOptions.showfails = data['options']['showfails']
                 game.gameOptions.ladylake = data['options']['ladylake']
+                game.gameOptions.ptrc = data['options']['ptrc']
                 game.gameOptions.danmode = data['options']['danmode']
 
                 #Sanity check
@@ -392,6 +393,7 @@ io.on 'connection', (socket) ->
                     id      : player._id
                     vote    : data
 
+                num_votes = if game.gameOptions.ptrc then 6 else 5
                 #Check for vote end
                 if currVote.votes.length == game.players.length
                     vs = ((if v.vote then 1 else 0) for v in currVote.votes)
@@ -408,12 +410,12 @@ io.on 'connection', (socket) ->
                             if v.mission == game.currentMission
                                 vote_count += 1
 
-                        if vote_count == 6
+                        if vote_count == num_votes
                             currMission = game.missions[game.currentMission]
                             currMission.status = 1
                             game.check_for_game_end()
 
-                    game.set_next_leader(vote_passed || vote_count == 6)
+                    game.set_next_leader(vote_passed || vote_count == num_votes)
                 game.save()
                 send_game_info(game)
 
