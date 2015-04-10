@@ -216,10 +216,6 @@ jQuery ->
                     $("#mission" + i).removeClass("good")
                     $("#mission" + i).removeClass("evil")
 
-#FIXME
-            $("#missionmessage")
-                .text("Game state is: " + game.state)
-
             #Notify about last mission
             if game.state == GAME_PROPOSE
                 $("#missionmessage")
@@ -233,13 +229,13 @@ jQuery ->
                         votecount += 1
 
                 if votecount > 0
-#FIXME                    $("#missionmessage")
-#FIXME                        .text("Failed voting rounds: " + votecount)
+                    $("#missionmessage")
+                        .text("Failed voting rounds: " + votecount)
                 else if lastmission != undefined
                     if lastmission.status == 1
                         $("#missionmessage")
                             .addClass("evil")
-#FIXME                            .text("Mission failed! It was probably Dan.")
+                            .text("Mission failed! It was probably Dan.")
 
                         if game.options.showfails
                             if lastmission.numfails == 1
@@ -249,15 +245,15 @@ jQuery ->
                     else
                         $("#missionmessage")
                             .addClass("good")
-#FIXME                            .text("Mission succeeded!")
+                            .text("Mission succeeded!")
                 else
-#FIXME                    $("#missionmessage").text("")
+                    $("#missionmessage").text("")
 
             if game.state == GAME_QUEST
                 $("#missionmessage")
                     .removeClass("good")
                     .removeClass("evil")
-#FIXME                    .text("Mission is underway...")
+                    .text("Mission is underway...")
 
             if game.state == GAME_LADY
                 $("#missionmessage")

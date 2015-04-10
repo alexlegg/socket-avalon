@@ -426,7 +426,7 @@ io.on 'connection', (socket) ->
                                 if v.mission == game.currentMission
                                     vote_count += 1
 
-                            if vote_count == 2 #FIXME
+                            if vote_count == 5
                                 if game.gameOptions.ptrc
                                     game.state = GAME_PTRC_PROPOSE
                                 else
