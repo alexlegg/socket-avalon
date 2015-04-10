@@ -461,8 +461,14 @@ io.on 'connection', (socket) ->
                             notVotedOn = []
                             if newAccepted.length != currMission.numReq
                                 for p in game.players
-                                    if p.id not in votedOn
+                                    hasBeenVotedOn = false
+                                    for vo in votedOn
+                                        if p.id.equals(vo)
+                                            hasBeenVotedOn = true
+
+                                    if not hasBeenVotedOn
                                         notVotedOn.push p.id
+
                             game.votes.push
                                 mission  : currVote.mission
                                 team     : newAccepted.concat(notVotedOn)
