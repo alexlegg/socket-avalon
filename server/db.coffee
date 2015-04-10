@@ -8,14 +8,16 @@ db = mongoose.connect(db_url)
 # Database schema definition
 #
 
-GAME_LOBBY      = 0
-GAME_PREGAME    = 1
-GAME_PROPOSE    = 2
-GAME_VOTE       = 3
-GAME_QUEST      = 4
-GAME_LADY       = 5
-GAME_ASSASSIN   = 6
-GAME_FINISHED   = 7
+GAME_LOBBY         = 0
+GAME_PREGAME       = 1
+GAME_PROPOSE       = 2
+GAME_VOTE          = 3
+GAME_PTRC_PROPOSE  = 4
+GAME_PTRC_VOTE     = 5
+GAME_QUEST         = 6
+GAME_LADY          = 7
+GAME_ASSASSIN      = 8
+GAME_FINISHED      = 9
 
 ObjectId = mongoose.Schema.Types.ObjectId
 
@@ -84,7 +86,7 @@ gameSchema = new mongoose.Schema
             information : String
         ]
     ]
-    missions    : [
+    missions        : [
         numReq      : Number
         failsReq    : Number
         players     : [
@@ -93,10 +95,12 @@ gameSchema = new mongoose.Schema
         ]
         status  : {type: Number, default: 0}
     ]
-    votes       : [
-        mission : Number
-        team    : [ObjectId]
-        votes   : [
+    votes        : [
+        mission  : Number
+        team     : [ObjectId]
+        accepted : [ObjectId]
+        rejected : [ObjectId]
+        votes    : [
             id      : ObjectId
             vote    : Boolean
         ]

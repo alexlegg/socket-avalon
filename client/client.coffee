@@ -20,14 +20,16 @@ jQuery ->
         $("#game").hide()
         $("#disconnected").show()
 
-    GAME_LOBBY      = 0
-    GAME_PREGAME    = 1
-    GAME_PROPOSE    = 2
-    GAME_VOTE       = 3
-    GAME_QUEST      = 4
-    GAME_LADY       = 5
-    GAME_ASSASSIN   = 6
-    GAME_FINISHED   = 7
+    GAME_LOBBY         = 0
+    GAME_PREGAME       = 1
+    GAME_PROPOSE       = 2
+    GAME_VOTE          = 3
+    GAME_PTRC_PROPOSE  = 4
+    GAME_PTRC_VOTE     = 5
+    GAME_QUEST         = 6
+    GAME_LADY          = 7
+    GAME_ASSASSIN      = 8
+    GAME_FINISHED      = 9
 
     socket.on 'player_id', (player_id) ->
         $.cookie('player_id', player_id, {expires: 365})
@@ -214,6 +216,10 @@ jQuery ->
                     $("#mission" + i).removeClass("good")
                     $("#mission" + i).removeClass("evil")
 
+#FIXME
+            $("#missionmessage")
+                .text("Game state is: " + game.state)
+
             #Notify about last mission
             if game.state == GAME_PROPOSE
                 $("#missionmessage")
@@ -227,13 +233,13 @@ jQuery ->
                         votecount += 1
 
                 if votecount > 0
-                    $("#missionmessage")
-                        .text("Failed voting rounds: " + votecount)
+#FIXME                    $("#missionmessage")
+#FIXME                        .text("Failed voting rounds: " + votecount)
                 else if lastmission != undefined
                     if lastmission.status == 1
                         $("#missionmessage")
                             .addClass("evil")
-                            .text("Mission failed! It was probably Dan.")
+#FIXME                            .text("Mission failed! It was probably Dan.")
 
                         if game.options.showfails
                             if lastmission.numfails == 1
@@ -243,15 +249,15 @@ jQuery ->
                     else
                         $("#missionmessage")
                             .addClass("good")
-                            .text("Mission succeeded!")
+#FIXME                            .text("Mission succeeded!")
                 else
-                    $("#missionmessage").text("")
+#FIXME                    $("#missionmessage").text("")
 
             if game.state == GAME_QUEST
                 $("#missionmessage")
                     .removeClass("good")
                     .removeClass("evil")
-                    .text("Mission is underway...")
+#FIXME                    .text("Mission is underway...")
 
             if game.state == GAME_LADY
                 $("#missionmessage")
@@ -292,7 +298,8 @@ jQuery ->
                 if game.state == GAME_LADY && p.id in game.pastLadies
                     icons.append('<img class="icon" src="cross.png" />')
 
-                if game.state == GAME_VOTE || game.state == GAME_QUEST
+                if game.state == GAME_VOTE || game.state == GAME_QUEST ||
+                   game.state == GAME_PTRC_VOTE
                     currVote = game.votes[game.votes.length - 1]
 
                     #Highlight proposed team
@@ -307,7 +314,22 @@ jQuery ->
                     if not (p.id in voted)
                         icons.append('<img class="icon" src="clock.png" />')
 
-                if game.state == GAME_PROPOSE || game.state == GAME_QUEST
+                if game.state == GAME_PTRC_PROPOSE || game.state == GAME_PTRC_VOTE
+                    currVote = game.votes[game.votes.length - 1]
+
+                    if currVote && currVote.mission == game.currentMission
+                        #Highlight already accepted team
+                        if p.id in currVote.accepted
+                            #icons.append('\u2694')
+                            li.addClass("ptrc_success")
+
+                        #Highlight already rejected team
+                        if p.id in currVote.rejected
+                            #icons.append('\u2694')
+                            li.addClass("ptrc_fail")
+
+                if game.state == GAME_PROPOSE || game.state == GAME_QUEST ||
+                   game.state == GAME_PTRC_PROPOSE
                     currVote = game.votes[game.votes.length - 1]
                     if currVote && currVote.mission == game.currentMission
                         #Add an icon for votes
@@ -322,11 +344,17 @@ jQuery ->
                     if game.state == GAME_PROPOSE
                         mission = game.missions[game.currentMission]
                         mission_max = mission.numReq
-                    else if game.state == GAME_ASSASSIN
+                    else if game.state == GAME_ASSASSIN || game.state == GAME_PTRC_PROPOSE
                         mission_max = 1
                     window.mission_max = mission_max
+
+                    prev_chosen = []
+                    if game.votes.length > 0
+                        currVote = game.votes[game.votes.length - 1]
+                        prev_chosen = currVote.accepted.concat(currVote.rejected)
+
                     li.on 'click', (e) ->
-                        select_for_mission(mission_max, $(e.target))
+                        select_for_mission(mission_max, prev_chosen, $(e.target))
                     input = $("<input>").attr
                         type    : 'hidden'
                         name    : p.id
@@ -348,7 +376,8 @@ jQuery ->
                 $("#players").append(li)
 
             #Make quest proposal button visible to leader
-            if game.state == GAME_PROPOSE && game.currentLeader == me.id
+            if (game.state == GAME_PROPOSE || game.state == GAME_PTRC_PROPOSE) &&
+               game.currentLeader == me.id
                 $("#btn_select_mission").show()
                 $("#leaderinfo").show()
             else
@@ -370,7 +399,7 @@ jQuery ->
                 $("#btn_reveal").hide()
 
             #Make voting panel visible during vote phase
-            if game.state == GAME_VOTE
+            if game.state == GAME_VOTE || game.state == GAME_PTRC_VOTE
                 currVote = game.votes[game.votes.length - 1]
                 voted = []
                 if currVote.votes
@@ -553,7 +582,7 @@ jQuery ->
         $("#login").hide()
 
 
-select_for_mission = (mission_max, li) ->
+select_for_mission = (mission_max, prev_chosen, li) ->
     proposing = $("#btn_select_mission").is(":visible")
     assassinating = $("#btn_assassinate").is(":visible")
     if proposing || assassinating
@@ -562,7 +591,7 @@ select_for_mission = (mission_max, li) ->
         mission_count = 0
         $("#players li").each () ->
             input = $($(this).children(":input")[0])
-            if assassinating
+            if mission_max == 1
                 $(this).removeClass("active")
                 input.attr(value: 0)
             else
@@ -570,11 +599,14 @@ select_for_mission = (mission_max, li) ->
 
         #Toggle players if it won't exceed mission maximum
         input = $(li.children(":input")[0])
+        player_id = input.attr("name")
         if li.hasClass("active")
             li.removeClass("active")
             input.attr(value: 0)
         else
-            if mission_count + 1 <= mission_max
+            if player_id in prev_chosen
+                $("#leaderinfo").html("You can't choose someone who has already been voted for")
+            else if mission_count + 1 <= mission_max
                 li.addClass("active")
                 input.attr(value: 1)
             else

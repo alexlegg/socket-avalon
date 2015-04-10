@@ -123,6 +123,30 @@ li.success {
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff5cb85c', endColorstr='#ff449d44', GradientType=0);
 }
 
+li.ptrc_success {
+    background-color: #c9e8c9;
+    color: #ffffff;
+    background-image: -webkit-gradient(linear, left 0%, left 100%, from(#c9e8c9), to(#a5d9a5));
+    background-image: -webkit-linear-gradient(top, #c9e8c9, 0%, #a5d9a5, 100%);
+    background-image: -moz-linear-gradient(top, #c9e8c9 0%, #a5d9a5 100%);
+    background-image: linear-gradient(to bottom, #c9e8c9 0%, #a5d9a5 100%);
+    background-repeat: repeat-x;
+    border-color: #419641;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffc9e8c9', endColorstr='#ffa5d9a5', GradientType=0);
+}
+
+li.ptrc_fail {
+    background-color: #e8c9c9;
+    color: #ffffff;
+    background-image: -webkit-gradient(linear, left 0%, left 100%, from(#e8c9c9), to(#d9a5a5));
+    background-image: -webkit-linear-gradient(top, #e8c9c9, 0%, #d9a5a5, 100%);
+    background-image: -moz-linear-gradient(top, #e8c9c9 0%, #d9a5a5 100%);
+    background-image: linear-gradient(to bottom, #e8c9c9 0%, #d9a5a5 100%);
+    background-repeat: repeat-x;
+    border-color: #419641;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffe8c9c9', endColorstr='#ffd9a5a5', GradientType=0);
+}
+
 .btn-approve {
     background-color: #ffffff;
     color: #000000;

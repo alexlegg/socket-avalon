@@ -51,7 +51,7 @@ send_game_info = (game, to = undefined) ->
     #Hide unfinished votes
     votes = []
     for v in game.votes
-        dv = {mission: v.mission, team: v.team, votes: []}
+        dv = {mission: v.mission, team: v.team, accepted: v.accepted, rejected: v.rejected,votes: []}
         if v.votes.length == game.players.length
             dv.votes = v.votes
         else
@@ -368,12 +368,26 @@ io.on 'connection', (socket) ->
             Game.findById player.currentGame, (err, game) ->
                 return if err || not game
                 mission = game.missions[game.currentMission]
-                return if data.length != mission.numReq
-                game.votes.push
-                    mission : game.currentMission
-                    team    : data
-                    votes   : []
-                game.state = GAME_VOTE
+
+                if game.state == GAME_PROPOSE
+                    return if data.length != mission.numReq
+                    game.votes.push
+                        mission  : game.currentMission
+                        team     : data
+                        accepted : []
+                        rejected : []
+                        votes    : []
+                    game.state = GAME_VOTE
+                else
+                    return if data.length != 1
+                    prevVote = game.votes[game.votes.length - 1]
+                    game.votes.push
+                        mission  : game.currentMission
+                        team     : data
+                        accepted : prevVote.accepted
+                        rejected : prevVote.rejected
+                        votes    : []
+                    game.state = GAME_PTRC_VOTE
                 game.save()
                 send_game_info(game)
 
@@ -393,29 +407,75 @@ io.on 'connection', (socket) ->
                     id      : player._id
                     vote    : data
 
-                num_votes = if game.gameOptions.ptrc then 6 else 5
                 #Check for vote end
                 if currVote.votes.length == game.players.length
                     vs = ((if v.vote then 1 else 0) for v in currVote.votes)
                     vs = vs.sum()
                     vote_passed = vs > (game.players.length - vs)
                     vote_count = 0
-                    if vote_passed
-                        game.state = GAME_QUEST
+
+                    if game.state == GAME_VOTE
+                        new_mission = false
+                        if vote_passed
+                            game.state = GAME_QUEST
+                        else
+                            game.state = GAME_PROPOSE
+
+                            #Check for too many failed votes
+                            for v in game.votes
+                                if v.mission == game.currentMission
+                                    vote_count += 1
+
+                            if vote_count == 2 #FIXME
+                                if game.gameOptions.ptrc
+                                    game.state = GAME_PTRC_PROPOSE
+                                else
+                                    new_mission = true
+                                    currMission = game.missions[game.currentMission]
+                                    currMission.status = 1
+                                    game.check_for_game_end()
+
+                        game.set_next_leader(vote_passed || new_mission)
                     else
-                        game.state = GAME_PROPOSE
+                        #In state GAME_PTRC_VOTE
+                        if vote_passed
+                            newAccepted = currVote.accepted.concat(currVote.team)
+                            newRejected = currVote.rejected
+                        else
+                            newAccepted = currVote.accepted
+                            newRejected = currVote.rejected.concat(currVote.team)
+                        game.votes.pop
+                        game.votes.push
+                            mission  : currVote.mission
+                            team     : currVote.team
+                            accepted : newAccepted
+                            rejected : newRejected
+                            votes    : currVote.votes
 
-                        #Check for too many failed votes
-                        for v in game.votes
-                            if v.mission == game.currentMission
-                                vote_count += 1
+                        #Check for full team
+                        currMission = game.missions[game.currentMission]
+                        votedOn = newAccepted.concat(newRejected)
+                        numNotVotedOn = game.players.length - votedOn.length
+                        if newAccepted.length == currMission.numReq ||
+                           newAccepted.length + numNotVotedOn == currMission.numReq
+                            notVotedOn = []
+                            if newAccepted.length != currMission.numReq
+                                for p in game.players
+                                    if p.id not in votedOn
+                                        notVotedOn.push p.id
+                            game.votes.push
+                                mission  : currVote.mission
+                                team     : newAccepted.concat(notVotedOn)
+                                accepted : []
+                                rejected : []
+                                votes    : currVote.votes
+                            game.state = GAME_QUEST
+                            game.currentLeader = game.finalLeader
+                            game.set_next_leader(true)
+                        else
+                            game.state = GAME_PTRC_PROPOSE
+                            game.set_next_leader(false)
 
-                        if vote_count == num_votes
-                            currMission = game.missions[game.currentMission]
-                            currMission.status = 1
-                            game.check_for_game_end()
-
-                    game.set_next_leader(vote_passed || vote_count == num_votes)
                 game.save()
                 send_game_info(game)
 
