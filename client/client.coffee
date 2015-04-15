@@ -1,3 +1,7 @@
+Array::sum = () ->
+    @reduce (x, y) -> x + y
+
+
 jQuery ->
     #Socket.io stuff
     
@@ -217,7 +221,7 @@ jQuery ->
                     $("#mission" + i).removeClass("evil")
 
             #Notify about last mission
-            if game.state == GAME_PROPOSE
+            if game.state == GAME_PROPOSE || game.state == GAME_LADY
                 $("#missionmessage")
                     .removeClass("good")
                     .removeClass("evil")
@@ -254,11 +258,6 @@ jQuery ->
                     .removeClass("good")
                     .removeClass("evil")
                     .text("Mission is underway...")
-
-            if game.state == GAME_LADY
-                $("#missionmessage")
-                    .removeClass("good")
-                    .removeClass("evil")
 
             if game.state == GAME_ASSASSIN
                 $("#missionmessage")
@@ -324,8 +323,9 @@ jQuery ->
                             #icons.append('\u2694')
                             li.addClass("ptrc_fail")
 
-                if game.state == GAME_PROPOSE || game.state == GAME_QUEST ||
-                   game.state == GAME_PTRC_PROPOSE
+                if (game.state == GAME_PROPOSE || game.state == GAME_QUEST ||
+                   game.state == GAME_PTRC_PROPOSE) &&
+                   (!(game.options.hidden_ptrc && curr_vote_ptrc(game)))
                     currVote = game.votes[game.votes.length - 1]
                     if currVote && currVote.mission == game.currentMission
                         #Add an icon for votes
@@ -333,6 +333,26 @@ jQuery ->
                             if p.id == v.id
                                 voteicon = if v.vote then 'tick' else 'cross'
                                 icons.append('<img class="icon" src="' + voteicon + '.png" />')
+
+                if (game.state == GAME_QUEST || game.state == GAME_PTRC_PROPOSE) &&
+                   (game.options.hidden_ptrc && curr_vote_ptrc(game))
+                    currVote = game.votes[game.votes.length - 1]
+                    if currVote && currVote.mission == game.currentMission
+                        #Add a message for curr vote
+                        vs = ((if v.vote then 1 else 0) for v in currVote.votes)
+                        vs = vs.sum()
+                        vote_passed = vs > (game.players.length - vs)
+                        if vote_passed
+                            $("#missionmessage")
+                                .removeClass("evil")
+                                .addClass("good")
+                                .text("")
+                        else
+                            $("#missionmessage")
+                                .removeClass("good")
+                                .addClass("evil")
+                                .text("")
+                        $("#missionmessage").append(vs + " people approved.")
 
                 #Make players selectable for the leader (to propose quest)
                 if game.currentLeader == me.id
@@ -347,7 +367,8 @@ jQuery ->
                     prev_chosen = []
                     if game.votes.length > 0
                         currVote = game.votes[game.votes.length - 1]
-                        prev_chosen = currVote.accepted.concat(currVote.rejected)
+                        if currVote.mission == game.currentMission
+                            prev_chosen = currVote.accepted.concat(currVote.rejected)
 
                     li.on 'click', (e) ->
                         select_for_mission(mission_max, prev_chosen, $(e.target))
@@ -484,6 +505,7 @@ jQuery ->
         options['showfails'] = $("#opt_showfails").is(":checked")
         options['ladylake'] = $("#opt_ladylake").is(":checked")
         options['ptrc'] = $("#opt_ptrc").is(":checked")
+        options['hidden_ptrc'] = $("#opt_hidden_ptrc").is(":checked")
         options['danmode'] = $("#opt_danmode").is(":checked")
         
         socket.emit('startgame', {order: sorted, options: options})
@@ -625,3 +647,10 @@ select_for_lady = (pastLadies, li) ->
         else
             li.addClass("active")
             input.attr(value: 1)
+
+curr_vote_ptrc = (game) ->
+    if game.votes.length > 0
+        currVote = game.votes[game.votes.length - 1]
+        return currVote.accepted.length != 0 || currVote.rejected.length != 0
+    else
+        return false

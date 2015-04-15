@@ -67,6 +67,7 @@ gameSchema = new mongoose.Schema
         showfails   : Boolean
         ladylake    : Boolean
         ptrc        : Boolean
+        hidden_ptrc : Boolean
         danmode     : Boolean
     }
     roles       : [

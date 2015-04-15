@@ -51,7 +51,7 @@ send_game_info = (game, to = undefined) ->
     #Hide unfinished votes
     votes = []
     for v in game.votes
-        dv = {mission: v.mission, team: v.team, accepted: v.accepted, rejected: v.rejected,votes: []}
+        dv = {mission: v.mission, team: v.team, accepted: v.accepted, rejected: v.rejected, votes: []}
         if v.votes.length == game.players.length
             dv.votes = v.votes
         else
@@ -352,7 +352,8 @@ io.on 'connection', (socket) ->
                 game.gameOptions.oberon = data['options']['oberon']
                 game.gameOptions.showfails = data['options']['showfails']
                 game.gameOptions.ladylake = data['options']['ladylake']
-                game.gameOptions.ptrc = data['options']['ptrc']
+                game.gameOptions.ptrc = data['options']['ptrc'] || data['options']['hidden_ptrc']
+                game.gameOptions.hidden_ptrc = data['options']['hidden_ptrc']
                 game.gameOptions.danmode = data['options']['danmode']
 
                 #Sanity check
@@ -439,27 +440,18 @@ io.on 'connection', (socket) ->
                     else
                         #In state GAME_PTRC_VOTE
                         if vote_passed
-                            newAccepted = currVote.accepted.concat(currVote.team)
-                            newRejected = currVote.rejected
+                            currVote.accepted = currVote.accepted.concat(currVote.team)
                         else
-                            newAccepted = currVote.accepted
-                            newRejected = currVote.rejected.concat(currVote.team)
-                        game.votes.pop
-                        game.votes.push
-                            mission  : currVote.mission
-                            team     : currVote.team
-                            accepted : newAccepted
-                            rejected : newRejected
-                            votes    : currVote.votes
+                            currVote.rejected = currVote.rejected.concat(currVote.team)
 
                         #Check for full team
                         currMission = game.missions[game.currentMission]
-                        votedOn = newAccepted.concat(newRejected)
+                        votedOn = currVote.accepted.concat(currVote.rejected)
                         numNotVotedOn = game.players.length - votedOn.length
-                        if newAccepted.length == currMission.numReq ||
-                           newAccepted.length + numNotVotedOn == currMission.numReq
+                        if currVote.accepted.length == currMission.numReq ||
+                           currVote.accepted.length + numNotVotedOn == currMission.numReq
                             notVotedOn = []
-                            if newAccepted.length != currMission.numReq
+                            if currVote.accepted.length != currMission.numReq
                                 for p in game.players
                                     hasBeenVotedOn = false
                                     for vo in votedOn
@@ -471,9 +463,9 @@ io.on 'connection', (socket) ->
 
                             game.votes.push
                                 mission  : currVote.mission
-                                team     : newAccepted.concat(notVotedOn)
-                                accepted : []
-                                rejected : []
+                                team     : currVote.accepted.concat(notVotedOn)
+                                accepted : currVote.accepted
+                                rejected : currVote.rejected
                                 votes    : currVote.votes
                             game.state = GAME_QUEST
                             game.currentLeader = game.finalLeader
