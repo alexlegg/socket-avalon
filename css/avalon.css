@@ -131,7 +131,7 @@ li.ptrc_success {
     background-image: -moz-linear-gradient(top, #c9e8c9 0%, #a5d9a5 100%);
     background-image: linear-gradient(to bottom, #c9e8c9 0%, #a5d9a5 100%);
     background-repeat: repeat-x;
-    border-color: #419641;
+    border-color: #c9e8c9;
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffc9e8c9', endColorstr='#ffa5d9a5', GradientType=0);
 }
 
@@ -143,7 +143,7 @@ li.ptrc_fail {
     background-image: -moz-linear-gradient(top, #e8c9c9 0%, #d9a5a5 100%);
     background-image: linear-gradient(to bottom, #e8c9c9 0%, #d9a5a5 100%);
     background-repeat: repeat-x;
-    border-color: #419641;
+    border-color: #e8c9c9;
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffe8c9c9', endColorstr='#ffd9a5a5', GradientType=0);
 }
 
