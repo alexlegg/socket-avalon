@@ -9,16 +9,16 @@ app.use express.static(__dirname + '/img')
 
 app.get '/', (req, res) ->
     res.set('Pragma', 'no-cache')
-    res.sendfile(__dirname + '/html/index.html')
+    res.sendFile(__dirname + '/html/index.html')
 
 app.get '/games', (req, res) ->
-    res.sendfile(__dirname + '/html/games.html')
+    res.sendFile(__dirname + '/html/games.html')
 
 app.get '/game', (req, res) ->
-    res.sendfile(__dirname + '/html/game.html')
+    res.sendFile(__dirname + '/html/game.html')
 
 app.get '/admin', (req, res) ->
-    res.sendfile(__dirname + '/html/admin.html')
+    res.sendFile(__dirname + '/html/admin.html')
 
 app.get '/api', (req, res) ->
     return if not req.query['type']
