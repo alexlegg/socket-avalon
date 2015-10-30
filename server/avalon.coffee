@@ -542,6 +542,23 @@ io.on 'connection', (socket) ->
                 game.save()
                 send_game_info(game)
 
+    socket.on 'early_assassinate', () ->
+        socket.get 'player', (err, player) ->
+            return if err || not player
+            Game.findById player.currentGame, (err, game) ->
+                return if err || not game
+
+                #Check that player is allowed to assassinate
+                p = game.get_player(player._id)
+                return if not p || p.role != "Assassin"
+
+                game.currentMission += 1
+                game.currentLeader = p.id
+                game.state = GAME_ASSASSIN
+
+                game.save()
+                send_game_info(game)
+
     socket.on 'reveal', (t) ->
         socket.get 'player', (err, player) ->
             return if err || not player

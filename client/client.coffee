@@ -420,6 +420,10 @@ jQuery ->
             else
                 $("#btn_assassinate").hide()
 
+            #Hide early assassination button
+            if me.role != "Assassin" || not $("#hiddeninfo").is(":visible")
+                $("#btn_early_assassinate").hide()
+
             #Make reveal button visible to player with the Lady of the Lake
             if game.state == GAME_LADY && game.lady == me.id
                 $("#btn_reveal").show()
@@ -463,6 +467,10 @@ jQuery ->
 
             #Draw the hidden info box
             $("#hiddeninfo").empty()
+            if me.role == "Assassin" && game.state != GAME_ASSASSIN
+                $("#hiddeninfo").addClass("Assassin")
+            if game.state == GAME_ASSASSIN
+                $("#hiddeninfo").removeClass("Assassin")
             info = $("<span>").text(me.role)
             if me.isEvil
                 info.addClass("evil")
@@ -536,8 +544,12 @@ jQuery ->
     $("#btn_showinfo").on 'click', () ->
         if $("#hiddeninfo").is(":visible")
             $("#btn_showinfo").text("Show Hidden Info")
+            if $("#hiddeninfo").hasClass("Assassin")
+                $("#btn_early_assassinate").hide()
         else
             $("#btn_showinfo").text("Hide Hidden Info")
+            if $("#hiddeninfo").hasClass("Assassin")
+                $("#btn_early_assassinate").show()
         $("#hiddeninfo").toggle()
 
     $(".options-list li").on 'click', (e) ->
@@ -598,6 +610,9 @@ jQuery ->
             $(this).removeClass("active")
         $("#quest").hide()
         socket.emit('quest', quest_card)
+
+    $("#btn_early_assassinate").on 'click', (e) ->
+        socket.emit 'early_assassinate'
 
     $("#btn_quit").on 'click', (e) ->
         $("#game").hide()
