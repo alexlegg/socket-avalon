@@ -26,7 +26,6 @@ send_game_info = (game, to = undefined) ->
         currentLeader   : game.currentLeader
         finalLeader     : game.finalLeader
         currentMission  : game.currentMission
-        missions        : game.missions
         lady            : game.lady
         pastLadies      : game.pastLadies
         reconnect_user  : game.reconnect_user
@@ -66,9 +65,11 @@ send_game_info = (game, to = undefined) ->
     missions = []
     for m in game.missions
         numfails = 0
+        players = []
         for p in m.players
             if !p.success then numfails += 1
-        dm = {numReq:m.numReq, failsReq: m.failsReq, status: m.status, numfails: numfails}
+            players.push p.id
+        dm = {numReq:m.numReq, failsReq: m.failsReq, status: m.status, numfails: numfails, players: players}
         missions.push dm
 
     data.missions = missions
@@ -519,6 +520,7 @@ io.on 'connection', (socket) ->
                     send_game_info(game)
                 else
                     game.save()
+                    send_game_info(game)
 
     socket.on 'assassinate', (t) ->
         socket.get 'player', (err, player) ->

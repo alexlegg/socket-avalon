@@ -306,8 +306,21 @@ jQuery ->
                     voted = []
                     if currVote.votes
                         (voted.push v.id) for v in currVote.votes
-                    if not (p.id in voted)
+
+                    if (p.id not in voted)
                         icons.append('<img class="icon" src="clock.png" />')
+
+                    #Hourglass next to players that haven't done quest
+                    if game.state == GAME_QUEST
+                        if p.id in currVote.team
+                            done = false
+                            currMission = game.missions[game.currentMission]
+                            if currMission.players
+                                for t in currMission.players
+                                    if p.id == t
+                                        done = true
+                            if not done
+                                icons.append('<img class="icon" src="clock.png" />')
 
                 if game.state == GAME_PTRC_PROPOSE || game.state == GAME_PTRC_VOTE
                     currVote = game.votes[game.votes.length - 1]
