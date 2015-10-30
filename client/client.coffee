@@ -444,7 +444,17 @@ jQuery ->
             #Make questing panel visible during quest phase
             if game.state == GAME_QUEST
                 currVote = game.votes[game.votes.length - 1]
-                if me.id in currVote.team
+
+                #Check if player has already submitted quest
+                done = false
+                currMission = game.missions[game.currentMission]
+                if currMission.players
+                    for t in currMission.players
+                        if me.id == t
+                            done = true
+
+                currMission = game.missions[game.currentMission]
+                if me.id in currVote.team && not done
                     $("#quest").show()
                 else
                     $("#quest").hide()
