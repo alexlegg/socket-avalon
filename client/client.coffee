@@ -22,6 +22,7 @@ jQuery ->
         $("#lobby").hide()
         $("#pregame").hide()
         $("#game").hide()
+        $("#stale_version").hide()
         $("#disconnected").show()
 
     GAME_LOBBY         = 0
@@ -69,13 +70,23 @@ jQuery ->
         $("#reconnectmessage").text("You were rejected")
 
 
-    socket.on 'gamelist', (games) ->
+    socket.on 'gamelist', (data) ->
+        if data.version != VERSION
+            $("#signin").hide()
+            $("#lobby").hide()
+            $("#pregame").hide()
+            $("#game").hide()
+            $("#disconnected").hide()
+            $("#stale_version").show()
+            return
+
+        $("#stale_version").hide()
         return if $("#pregame").is(":visible")
         return if $("#game").is(":visible")
 
         $("#lobby").show()
         $("#gamelist").empty()
-        for g in games
+        for g in data.games
             do (g) ->
                 join_btn = $('<a>')
                     .addClass("list-group-item")
@@ -91,6 +102,16 @@ jQuery ->
         $("#game").hide()
 
     socket.on 'gameinfo', (game) ->
+        if game.version != VERSION
+            $("#signin").hide()
+            $("#lobby").hide()
+            $("#pregame").hide()
+            $("#game").hide()
+            $("#disconnected").hide()
+            $("#stale_version").show()
+            return
+
+        $("#stale_version").hide()
         $("#lobby").hide()
 
         if game.state == GAME_LOBBY

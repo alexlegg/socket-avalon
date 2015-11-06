@@ -9,12 +9,15 @@ Array::sum = () ->
 
 send_game_list = () ->
     Game.find {}, (err, games) ->
-        data = []
+        data =
+            version : VERSION
+        gamelist = []
         for g in games
-            if (g.state == GAME_LOBBY) then data.push
+            if (g.state == GAME_LOBBY) then gamelist.push
                 id : g.id
                 name : g.name()
                 num_players : g.players.length
+        data.gamelist = gamelist
         io.sockets.in('lobby').emit('gamelist', data)
 
 send_game_info = (game, to = undefined) ->
@@ -30,6 +33,7 @@ send_game_info = (game, to = undefined) ->
         pastLadies      : game.pastLadies
         reconnect_user  : game.reconnect_user
         reconnect_vote  : game.reconnect_vote
+        version         : VERSION
 
     #Overwrite player data (to hide secret info)
     #Split out socket ids while we're at it, no need to send them
