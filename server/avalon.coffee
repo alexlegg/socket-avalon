@@ -550,7 +550,7 @@ io.on 'connection', (socket) ->
 
                 #Check that player is allowed to assassinate
                 p = game.get_player(player._id)
-                return if not p || p.role != "Assassin"
+                return if not p || p.role != "Assassin" || game.state == GAME_ASSASSIN
 
                 game.currentMission += 1
                 game.currentLeader = p.id

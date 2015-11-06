@@ -421,7 +421,8 @@ jQuery ->
                 $("#btn_assassinate").hide()
 
             #Hide early assassination button
-            if me.role != "Assassin" || not $("#hiddeninfo").is(":visible")
+            if me.role != "Assassin" || not $("#hiddeninfo").is(":visible") ||
+               game.state == GAME_ASSASSIN
                 $("#btn_early_assassinate").hide()
 
             #Make reveal button visible to player with the Lady of the Lake
