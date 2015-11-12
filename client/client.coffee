@@ -80,14 +80,14 @@ jQuery ->
             $("#disconnected").hide()
             $("#stale_version").show()
             return
-
         $("#stale_version").hide()
+
         return if $("#pregame").is(":visible")
         return if $("#game").is(":visible")
 
         $("#lobby").show()
         $("#gamelist").empty()
-        for g in data.games
+        for g in data.gamelist
             do (g) ->
                 join_btn = $('<a>')
                     .addClass("list-group-item")
@@ -111,8 +111,8 @@ jQuery ->
             $("#disconnected").hide()
             $("#stale_version").show()
             return
-
         $("#stale_version").hide()
+
         $("#lobby").hide()
 
         if game.state == GAME_LOBBY
