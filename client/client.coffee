@@ -13,6 +13,7 @@ jQuery ->
 
     socket.on 'connect', (data) ->
         $("#disconnected").hide()
+        $("#stale_version").hide()
 
         if not $.cookie('player_id')
             $("#signin").show()
