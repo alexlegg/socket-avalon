@@ -1,6 +1,7 @@
 Array::sum = () ->
     @reduce (x, y) -> x + y
 
+VERSION = 2
 
 jQuery ->
     #Socket.io stuff
@@ -489,7 +490,7 @@ jQuery ->
             else
                 $("#quest").hide()
 
-            #Draw the hidden info box
+            #Draw the hidden info box and store whether the player is the assassin
             $("#hiddeninfo").empty()
             if me.role == "Assassin" && game.state != GAME_ASSASSIN
                 $("#hiddeninfo").addClass("Assassin")
@@ -515,6 +516,39 @@ jQuery ->
                     .text(i.otherPlayer + " is ")
                     .append(info)
                 $("#hiddeninfo").append(li)
+
+            #Draw the chosen options box
+            $("#chosenoptions").empty()
+            if game.options.mordred
+                li = $("<li>")
+                    .addClass("list-group-item")
+                    .text("Mordred")
+                $("#chosenoptions").append(li)
+            if game.options.oberon
+                li = $("<li>")
+                    .addClass("list-group-item")
+                    .text("Oberon")
+                $("#chosenoptions").append(li)
+            if game.options.showfails
+                li = $("<li>")
+                    .addClass("list-group-item")
+                    .text("Show number of fails")
+                $("#chosenoptions").append(li)
+            if game.options.ladylake
+                li = $("<li>")
+                    .addClass("list-group-item")
+                    .text("Lady of the Lake")
+                $("#chosenoptions").append(li)
+            if game.options.ptrc
+                li = $("<li>")
+                    .addClass("list-group-item")
+                    .text("PTRC")
+                $("#chosenoptions").append(li)
+            if game.options.hidden_ptrc
+                li = $("<li>")
+                    .addClass("list-group-item")
+                    .text("Hidden PTRC")
+                $("#chosenoptions").append(li)
 
             #If someone is trying to reconnect show vote
             if game.reconnect_user && game.reconnect_user != ""
@@ -575,6 +609,13 @@ jQuery ->
             if $("#hiddeninfo").hasClass("Assassin")
                 $("#btn_early_assassinate").show()
         $("#hiddeninfo").toggle()
+
+    $("#btn_showoptions").on 'click', () ->
+        if $("#chosenoptions").is(":visible")
+            $("#btn_showoptions").text("Show Options")
+        else
+            $("#btn_showoptions").text("Hide Options")
+        $("#chosenoptions").toggle()
 
     $(".options-list li").on 'click', (e) ->
         e.preventDefault()

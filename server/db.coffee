@@ -215,7 +215,7 @@ gameSchema.methods.start_game = (order) ->
 
     if this.gameOptions.danmode
         for p, i in this.players
-            if p.name == "Dan"
+            if p.name == "Alex"
                 p.role = "Servant"
                 p.isEvil = false
 

@@ -7,6 +7,8 @@ Q = require('q')
 Array::sum = () ->
     @reduce (x, y) -> x + y
 
+VERSION = 2
+
 send_game_list = () ->
     Game.find {}, (err, games) ->
         data =

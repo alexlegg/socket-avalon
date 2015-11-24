@@ -31,6 +31,9 @@ a {
 #hiddeninfo {
     display: none;
 }
+#chosenoptions {
+    display: none;
+}
 #quest {
     display: none;
 }
@@ -96,9 +99,6 @@ a {
 
 .evil {
     color: red;
-}
-
-.Assassin {
 }
 
 .good {
