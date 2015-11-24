@@ -120,6 +120,7 @@ jQuery ->
             $("#gameinfo").empty()
             $("#btn_start_game").hide()
             $("#gameoptions").hide()
+            $("#hiddeninfo").hide()
 
             ishost = false
             for p, i in game.players
