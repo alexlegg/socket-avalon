@@ -1,4 +1,4 @@
-db_url = "localhost"
+db_url = "127.0.0.1"
 mongoose = require('mongoose')
 bcrypt = require('bcrypt')
 

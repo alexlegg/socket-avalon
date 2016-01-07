@@ -53,14 +53,19 @@ displayGame = (game) ->
     if game.assassinated != undefined
         target = players[game.assassinated]
         $("#missionmessage").append("<br />" + target.name + " was assassinated.")
+    
 
     for p in game.players
+        console.log("p", p)
         li = $('<li>')
-            .addClass("list-group-item")
-            .text(p.name)
-            .append $("<span>")
-                .text(p.role)
-                .addClass("role")
+                .addClass("list-group-item")
+                .text(p.name)
+
+        span = $('<span>')
+                 .text(p.role)
+                 .addClass("role")
+
+        li.append(span)
 
         if p.isEvil
             li.addClass("evil")
@@ -72,22 +77,22 @@ displayGame = (game) ->
     for m, mi in game.missions
         continue if m.players.length == 0
 
-        a = $('<a>')
+        a = $("<a>")
             .addClass("list-group-item")
 
         if m.status == 2
-            sc = 'good'
+            sc = "good"
         else if m.status == 1
-            sc = 'evil'
+            sc = "evil"
 
         for p, i in m.players
-            span = $('<span>')
+            span = $("<span>")
                 .addClass(sc)
                 .text(players[p.id].name)
             if i != m.players.length - 1
-                span.append(', ')
+                span.append(", ")
             if not p.success
-                span.addClass('bold')
+                span.addClass("bold")
 
             a.append(span)
 
@@ -118,14 +123,14 @@ displayGame = (game) ->
 
             for pv in player_votes
                 td = $("<td>").addClass "vote_td"
-                voteicon = if pv[pid] then 'tick' else 'cross'
-                ptr.append('<img class="icon" src="' + voteicon + '.png" />')
+                voteicon = if pv[pid] then "tick" else "cross"
+                ptr.append("<img class=\"icon\" src=\"" + voteicon + ".png\" />")
 
             table.append(ptr)
 
         a.append(table)
         do (table) ->
-            a.on 'click', (e) ->
+            a.on "click", (e) ->
                 table.toggle()
 
         $("#missions").append(a)

@@ -64,14 +64,16 @@ parseCookies = (headers) ->
                 cookies[s[0]] = s[1]
     return cookies
 
-io.set 'authorization', (data, cb) ->
+io.use (socket, next) ->
+    data = socket.handshake
     cookies = parseCookies(data.headers)
     if not cookies || not cookies['player_id']
-        if data.query['player_id']
-            cookies = {player_id: data.query['player_id']}
+        if data.query.player_id
+            cookies = {player_id: data.query.player_id}
 
     data.headers.cookie = cookies
-    cb(null, true)
+    next()
+    return
 
 if DEBUG
     io.set('log level', 0)

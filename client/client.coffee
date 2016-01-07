@@ -5,12 +5,11 @@ VERSION = 2
 
 jQuery ->
     #Socket.io stuff
-    
     query = ""
     if $.cookie('player_id')
         query = "?player_id=" + $.cookie('player_id')
 
-    socket = io.connect('http://' + IP + ":" + PORT + query)
+    socket = io.connect('http://' + IP + ":" + PORT + query, {'transports': ['websocket', 'htmlfile', 'xhr-polling', 'jsonp-polling']})
 
     socket.on 'connect', (data) ->
         $("#disconnected").hide()
