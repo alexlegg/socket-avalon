@@ -227,7 +227,7 @@ io.on 'connection', (socket) ->
 
     socket.on 'reconnect_vote', (rvote) ->
         player = socket.player
-        return not player
+        return if not player
         Game.findById player.currentGame, (err, game) ->
             return if err || not game
 
