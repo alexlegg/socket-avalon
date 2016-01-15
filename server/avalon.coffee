@@ -184,7 +184,7 @@ io.on 'connection', (socket) ->
             Q.all(promises).then (results) ->
                 games = []
                 for game, i in results
-                    if not game || game.status <= GAME_PREGAME || game.status >= GAME_FINISHED
+                    if not game || game.state <= GAME_PREGAME || game.state >= GAME_FINISHED
                         continue
 
                     data =
