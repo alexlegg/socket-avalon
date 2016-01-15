@@ -245,23 +245,23 @@ io.on 'connection', (socket) ->
                 if vs > (game.players.length / 2)
                     sock = io.sockets.sockets[game.reconnect_sock]
                     #Save player's socket data
-                    sock.get 'player', (err, player) ->
-                        if player && not err
-                            player.socket = sock.id
-                            player.save()
-                            sock.emit('player_id', player._id)
+                    player = sock.player
+                    if player
+                        player.socket = sock.id
+                        player.save()
+                        sock.emit('player_id', player._id)
 
-                            for p in game.players
-                                if p.id.equals(player._id)
-                                    p.socket = sock.id
-                                    break
+                        for p in game.players
+                            if p.id.equals(player._id)
+                                p.socket = sock.id
+                                break
 
-                        game.reconnect_user = undefined
-                        game.reconnect_sock = undefined
-                        game.reconnect_vote = (0 for p in game.players)
+                    game.reconnect_user = undefined
+                    game.reconnect_sock = undefined
+                    game.reconnect_vote = (0 for p in game.players)
 
-                        game.save()
-                        send_game_info(game)
+                    game.save()
+                    send_game_info(game)
                 else
                     game.save()
                     send_game_info(game)
@@ -346,8 +346,9 @@ io.on 'connection', (socket) ->
                     target.leave_game (err, game) ->
                         if game then send_game_info(game)
                         s = io.sockets.sockets[target.socket]
-                        s.emit('kicked')
-                        s.join('lobby')
+                        if s
+                            s.emit('kicked')
+                            s.join('lobby')
                         send_game_list()
 
     socket.on 'startgame', (data) ->
